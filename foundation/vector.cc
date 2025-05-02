@@ -5,7 +5,7 @@
 using namespace std;
 
 int main() {
-    // 1. 构造函数
+    // 1.  构造函数
     vector<int> v1; // 默认构造函数，创建空向量
     vector<int> v2(5, 10); // 创建包含 5 个值为 10 的元素的向量
     vector<int> v3 = {1, 2, 3, 4, 5}; // 使用初始化列表构造向量

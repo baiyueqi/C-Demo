@@ -40,7 +40,7 @@ public:
     friend std::ostream& operator<<(std::ostream& os, const Game& game) {
         os << "Game object";
         return os;
-    } // 运算符重载
+    } //  运算符重载
 };
 
 class Chess : public Game {
