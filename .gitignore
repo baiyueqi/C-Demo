@@ -34,3 +34,4 @@
 # .vscode
 .vscode/
 /src/out/
+/foundation/vector/
