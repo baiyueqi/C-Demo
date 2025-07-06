@@ -1,7 +1,7 @@
 //写出vector的基础成员函数和使用示例
 #include <iostream>
 #include <vector>
-
+#include "dbg.h"
 using namespace std;
 
 int main() {
@@ -11,6 +11,9 @@ int main() {
     vector<int> v3 = {1, 2, 3, 4, 5}; // 使用初始化列表构造向量
 
     // 2. 容量相关函数
+    dbg(v1);
+    dbg(v2);
+    dbg(v3);
     cout << "v3 size: " << v3.size() << endl; // 输出向量大小
     cout << "v3 capacity: " << v3.capacity() << endl; // 输出向量容量
     cout << "v3 is empty: " << (v3.empty() ? "yes" : "no") << endl; // 判断是否为空
