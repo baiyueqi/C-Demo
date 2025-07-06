@@ -12,11 +12,11 @@
     nixpkgs.url = "github:NixOS/nixpkgs/24.11";
     utils.url = "github:numtide/flake-utils";
 
-    vitalpkgs.url = "github:nixvital/vitalpkgs";
-    vitalpkgs.inputs.nixpkgs.follows = "nixpkgs";
+    # vitalpkgs.url = "github:nixvital/vitalpkgs";
+    # vitalpkgs.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, vitalpkgs, ... }@inputs: inputs.utils.lib.eachSystem [
+  outputs = { self, nixpkgs, ... }@inputs: inputs.utils.lib.eachSystem [
     # Add the system/architecture you would like to support here. Note that not
     # all packages in the official nixpkgs support all platforms.
     "x86_64-linux" "i686-linux" "aarch64-linux" "x86_64-darwin"
@@ -26,7 +26,7 @@
                    # Add overlays here if you need to override the nixpkgs
                    # official packages.
                     overlays = [
-                      vitalpkgs.overlays.default
+                      # vitalpkgs.overlays.default
                     ];
                      
                    # Uncomment this if you need unfree software (e.g. cuda) for
@@ -43,6 +43,20 @@
                       "openssl-1.1.1u"
                     ];
                  };
+
+                DevPython = pkgs.python3.withPackages (ps:
+                  with ps; [
+                    # Development-only packages
+                    jupyterlab
+                    ipywidgets
+                    notebook
+                    # pandas
+                    # numpy
+                    # matplotlib
+                    # plotly
+                    # xlrd
+                    # openpyxl
+                  ]);
              in {
                devShells.default = pkgs.mkShell.override {
                  stdenv = pkgs.llvmPackages_16.stdenv;
@@ -51,11 +65,12 @@
                  name = "basis";
 
                  packages = with pkgs; [
+
                    # Development Tools
                    cmake
-
+                   DevPython
                    # Development time dependencies
-                  #  gtest
+                   #  gtest
 
                    # Build time and Run time dependencies
                    llvmPackages_16.clang
@@ -64,8 +79,10 @@
                   spdlog
                   #  abseil-cpp
                   nlohmann_json
-                  vscode-include-fix
+                  # vscode-include-fix
                   boost
+                  # cling
+                  # xeus-cling
                   #  drogon
                  ];
 
