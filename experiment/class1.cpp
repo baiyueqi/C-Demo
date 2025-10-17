@@ -6,7 +6,7 @@
 
 using namespace std;
 
-// -------- 基类 --------
+//基类
 class Base {
 public:
     virtual ~Base() {}
@@ -17,7 +17,7 @@ public:
     virtual void display() const = 0;                 // 显示表中所有元素
 };
 
-// -------- 顺序表实现（基于 vector） --------
+//顺序表实现（基于 vector）
 class SeqList : public Base {
 private:
     vector<int> data;
@@ -93,7 +93,7 @@ public:
     }
 };
 
-// -------- 单链表实现 --------
+//单链表实现
 class LinList : public Base {
 private:
     struct Node {
@@ -235,7 +235,7 @@ public:
     }
 };
 
-// -------- 辅助函数：从键盘读一串整数直到 @ --------
+//辅助函数：从键盘读一串整数直到 @
 vector<int> readMultipleIntsFromInput() {
     vector<int> vals;
     cout << "请输入要操作的若干整数，以 @ 结束：\n";
@@ -253,7 +253,7 @@ vector<int> readMultipleIntsFromInput() {
     return vals;
 }
 
-// -------- 主交互程序 --------
+//主交互程序
 int main() {
     ios::sync_with_stdio(false);
     cin.tie(nullptr);
