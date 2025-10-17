@@ -49,7 +49,9 @@ public:
             if (tryParseInt(token, v)) data.push_back(v);
             else cout << "忽略非法输入: " << token << endl;
         }
-        sortList();
+        // 创建时不排序
+        cout << "创建完成，当前顺序表：\n";
+        display();
     }
 
     // 交互读取多个要插入的值（以 @ 结束），然后在 target 的最后一次出现之后依次插入
@@ -80,8 +82,11 @@ public:
             data.insert(data.begin() + pos + 1, ins.begin(), ins.end());
         }
 
+        cout << "插入完成，当前顺序表（未排序）：\n";
+        display();
+        
         sortList();
-        cout << "插入完成并排序，当前顺序表：\n";
+        cout << "排序后，当前顺序表：\n";
         display();
     }
 
@@ -154,7 +159,9 @@ public:
                 cout << "忽略非法输入: " << token << endl;
             }
         }
-        sortList();
+        // 创建时不排序
+        cout << "创建完成，当前链表：\n";
+        display();
     }
 
     // 在 target 的最后一处之后插入多个值（由交互读取）
@@ -196,8 +203,11 @@ public:
             insertPoint = node; // 下次在刚插入的节点后插入
         }
 
+        cout << "插入完成，当前链表（未排序）：\n";
+        display();
+        
         sortList();
-        cout << "插入完成并排序，当前链表：\n";
+        cout << "排序后，当前链表：\n";
         display();
     }
 
@@ -285,7 +295,8 @@ int main() {
         cout << "2. 插入元素（在指定值后插入多个，以 @ 结束）\n";
         cout << "3. 删除元素（按值删除所有）\n";
         cout << "4. 显示\n";
-        cout << "5. 链表逆序（仅单链表有效）\n";
+        cout << "5. 排序\n";
+        cout << "6. 链表逆序（仅单链表有效）\n";
         cout << "0. 退出\n";
         cout << "请选择：";
 
@@ -321,6 +332,10 @@ int main() {
         } else if (op == 4) {
             list->display();
         } else if (op == 5) {
+            list->sortList();
+            cout << "排序完成：\n";
+            list->display();
+        } else if (op == 6) {
             LinList* lp = dynamic_cast<LinList*>(list);
             if (lp) {
                 lp->reverseList();
