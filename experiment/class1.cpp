@@ -5,7 +5,7 @@
 #include <cctype>
 using namespace std;
 
-// ---------- 辅助：判断 token 是否整数并转换 ----------
+// 辅助：判断 token 是否整数并转换
 bool tryParseInt(const string &s, int &out) {
     if (s.empty()) return false;
     size_t i = 0;
@@ -22,7 +22,7 @@ bool tryParseInt(const string &s, int &out) {
     }
 }
 
-// ================= 基类 =================
+//基类
 class Base {
 public:
     virtual ~Base() {}
@@ -34,7 +34,7 @@ public:
     virtual void sortList() = 0; // 把排序功能抽出来
 };
 
-// ================= 顺序表 =================
+//顺序表
 class SeqList : public Base {
 private:
     vector<int> data;
@@ -89,7 +89,7 @@ public:
         cout << "排序后，当前顺序表：\n";
         display();
     }
-
+    // 删除所有值为 value 的元素
     void deleteValue(int value) override {
         auto it = remove(data.begin(), data.end(), value);
         if (it == data.end()) {
@@ -99,19 +99,19 @@ public:
             cout << "已删除所有值为 " << value << " 的元素。\n";
         }
     }
-
+    // 显示顺序表内容
     void display() const override {
         cout << "顺序表元素：";
         for (int v : data) cout << v << " ";
         cout << "\n";
     }
-
+    // 排序
     void sortList() override {
         sort(data.begin(), data.end());
     }
 };
 
-// ================= 单链表 =================
+//单链表
 class LinList : public Base {
 private:
     struct Node {
@@ -123,8 +123,9 @@ private:
 
 public:
     LinList() {
-        head = new Node(); // 哨兵
+        head = new Node(); // 哨兵节点
     }
+    // 析构函数释放链表内存
     ~LinList() {
         Node* p = head;
         while (p) {
@@ -133,7 +134,7 @@ public:
             delete t;
         }
     }
-
+    // 创建链表
     void create() override {
         cout << "请输入整数序列，以 @ 结束（例如：1 2 3 @）:\n";
         // 清空原链表（保留哨兵）
@@ -180,7 +181,7 @@ public:
             return;
         }
 
-        // 找到 target 的最后一个节点
+        // 找到 target(特定值) 的最后一个节点
         Node* p = head->next;
         Node* pos = nullptr;
         while (p) {
@@ -210,7 +211,7 @@ public:
         cout << "排序后，当前链表：\n";
         display();
     }
-
+    // 删除所有值为 value 的节点
     void deleteValue(int value) override {
         // 删除头部连续等于 value 的节点
         while (head->next && head->next->val == value) {
@@ -237,7 +238,7 @@ public:
             cout << "已删除所有值为 " << value << " 的节点。\n";
         }
     }
-
+    // 显示链表内容
     void display() const override {
         cout << "链表元素：";
         Node* p = head->next;
