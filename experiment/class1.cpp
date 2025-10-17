@@ -1,211 +1,340 @@
 #include <iostream>
 #include <vector>
+#include <string>
+#include <algorithm>
+#include <cctype>
 using namespace std;
 
-// ======================== 基类 ========================
+// ---------- 辅助：判断 token 是否整数并转换 ----------
+bool tryParseInt(const string &s, int &out) {
+    if (s.empty()) return false;
+    size_t i = 0;
+    if (s[0] == '+' || s[0] == '-') {
+        if (s.size() == 1) return false;
+        i = 1;
+    }
+    for (; i < s.size(); ++i) if (!isdigit((unsigned char)s[i])) return false;
+    try {
+        out = stoi(s);
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+// ================= 基类 =================
 class Base {
 public:
     virtual ~Base() {}
     virtual void create() = 0;
-    virtual void insertAfter(int target, int value) = 0;
+    // 在 target 值后插入多个值（由交互读取，以 @ 结束）
+    virtual void insertAfterTarget(int target) = 0;
     virtual void deleteValue(int value) = 0;
     virtual void display() const = 0;
-    virtual void sortList() = 0;
+    virtual void sortList() = 0; // 把排序功能抽出来
 };
 
-// ======================== 顺序表 ========================
+// ================= 顺序表 =================
 class SeqList : public Base {
 private:
     vector<int> data;
 public:
     void create() override {
-        cout << "请输入整数(<100,@表示结束)：";
-        int x;
-        while (cin >> x) {
-            if (x >= 100) break;
-            data.push_back(x);
+        cout << "请输入整数序列，以 @ 结束（例如：1 2 3 @）:\n";
+        data.clear();
+        string token;
+        while (cin >> token) {
+            if (token == "@") break;
+            int v;
+            if (tryParseInt(token, v)) data.push_back(v);
+            else cout << "忽略非法输入: " << token << endl;
         }
         sortList();
     }
 
-    void insertAfter(int target, int value) override {
-        // 找到所有 target，依次在其后插入 value
-        for (size_t i = 0; i < data.size(); ++i) {
-            if (data[i] == target) {
-                data.insert(data.begin() + i + 1, value);
-                ++i; // 跳过新插入的位置
-            }
+    // 交互读取多个要插入的值（以 @ 结束），然后在 target 的最后一次出现之后依次插入
+    void insertAfterTarget(int target) override {
+        cout << "输入要插入的多个值，以 @ 结束（例如：4 5 6 @）:\n";
+        vector<int> ins;
+        string token;
+        while (cin >> token) {
+            if (token == "@") break;
+            int v;
+            if (tryParseInt(token, v)) ins.push_back(v);
+            else cout << "忽略非法输入: " << token << endl;
         }
+        if (ins.empty()) {
+            cout << "没有有效插入值，操作取消。\n";
+            return;
+        }
+
+        // 找到 target 的最后一次位置
+        int pos = -1;
+        for (int i = 0; i < (int)data.size(); ++i) if (data[i] == target) pos = i;
+
+        if (pos == -1) {
+            // 如果没找到 target，插到尾部（按题意也可以）
+            data.insert(data.end(), ins.begin(), ins.end());
+        } else {
+            // 插入到 pos 之后：保持顺序依次插入
+            data.insert(data.begin() + pos + 1, ins.begin(), ins.end());
+        }
+
         sortList();
+        cout << "插入完成并排序，当前顺序表：\n";
+        display();
     }
 
     void deleteValue(int value) override {
-        for (auto it = data.begin(); it != data.end(); ) {
-            if (*it == value) it = data.erase(it);
-            else ++it;
-        }
-    }
-
-    void sortList() override {
-        // 简单冒泡排序（也可用 sort(data.begin(), data.end())）
-        for (size_t i = 0; i < data.size(); ++i) {
-            for (size_t j = 0; j + 1 < data.size(); ++j) {
-                if (data[j] > data[j+1]) {
-                    swap(data[j], data[j+1]);
-                }
-            }
+        auto it = remove(data.begin(), data.end(), value);
+        if (it == data.end()) {
+            cout << "未找到值 " << value << "。\n";
+        } else {
+            data.erase(it, data.end());
+            cout << "已删除所有值为 " << value << " 的元素。\n";
         }
     }
 
     void display() const override {
         cout << "顺序表元素：";
         for (int v : data) cout << v << " ";
-        cout << endl;
+        cout << "\n";
+    }
+
+    void sortList() override {
+        sort(data.begin(), data.end());
     }
 };
 
-// ======================== 单链表 ========================
+// ================= 单链表 =================
 class LinList : public Base {
 private:
     struct Node {
-        int data;
+        int val;
         Node* next;
-        Node(int d) : data(d), next(nullptr) {}
+        Node(int v=0): val(v), next(nullptr) {}
     };
-    Node* head;
+    Node* head; // 哨兵头结点，head->next 为首真实节点
 
 public:
-    LinList() : head(nullptr) {}
+    LinList() {
+        head = new Node(); // 哨兵
+    }
     ~LinList() {
         Node* p = head;
         while (p) {
-            Node* tmp = p;
+            Node* t = p;
             p = p->next;
-            delete tmp;
+            delete t;
         }
     }
 
     void create() override {
-        cout << "请输入整数(<100,@表示结束)：";
-        int x;
-        while (cin >> x) {
-            if (x >= 100) break;
-            Node* node = new Node(x);
-            node->next = head;
-            head = node;
+        cout << "请输入整数序列，以 @ 结束（例如：1 2 3 @）:\n";
+        // 清空原链表（保留哨兵）
+        Node* p = head->next;
+        while (p) {
+            Node* t = p;
+            p = p->next;
+            delete t;
+        }
+        head->next = nullptr;
+
+        // 尾插保持输入顺序
+        Node* tail = head;
+        string token;
+        while (cin >> token) {
+            if (token == "@") break;
+            int v;
+            if (tryParseInt(token, v)) {
+                Node* node = new Node(v);
+                tail->next = node;
+                tail = node;
+            } else {
+                cout << "忽略非法输入: " << token << endl;
+            }
         }
         sortList();
     }
 
-    void insertAfter(int target, int value) override {
-        Node* p = head;
-        while (p) {
-            if (p->data == target) {
-                Node* node = new Node(value);
-                node->next = p->next;
-                p->next = node;
-                p = node->next;  // 跳过刚插入的节点，避免死循环
-            } else {
-                p = p->next;
-            }
+    // 在 target 的最后一处之后插入多个值（由交互读取）
+    void insertAfterTarget(int target) override {
+        cout << "输入要插入的多个值，以 @ 结束（例如：4 5 6 @）:\n";
+        vector<int> ins;
+        string token;
+        while (cin >> token) {
+            if (token == "@") break;
+            int v;
+            if (tryParseInt(token, v)) ins.push_back(v);
+            else cout << "忽略非法输入: " << token << endl;
         }
+        if (ins.empty()) {
+            cout << "没有有效插入值，操作取消。\n";
+            return;
+        }
+
+        // 找到 target 的最后一个节点
+        Node* p = head->next;
+        Node* pos = nullptr;
+        while (p) {
+            if (p->val == target) pos = p;
+            p = p->next;
+        }
+
+        Node* insertPoint = pos;
+        if (!insertPoint) {
+            // 没找到 target，则插在尾部
+            insertPoint = head;
+            while (insertPoint->next) insertPoint = insertPoint->next;
+        }
+
+        // 依次插入
+        for (int v : ins) {
+            Node* node = new Node(v);
+            node->next = insertPoint->next;
+            insertPoint->next = node;
+            insertPoint = node; // 下次在刚插入的节点后插入
+        }
+
         sortList();
+        cout << "插入完成并排序，当前链表：\n";
+        display();
     }
 
     void deleteValue(int value) override {
-        while (head && head->data == value) {
-            Node* tmp = head;
-            head = head->next;
-            delete tmp;
+        // 删除头部连续等于 value 的节点
+        while (head->next && head->next->val == value) {
+            Node* t = head->next;
+            head->next = t->next;
+            delete t;
         }
+        // 删除中间其它节点
         Node* p = head;
-        while (p && p->next) {
-            if (p->next->data == value) {
-                Node* tmp = p->next;
-                p->next = tmp->next;
-                delete tmp;
+        bool found = false;
+        while (p->next) {
+            if (p->next->val == value) {
+                Node* t = p->next;
+                p->next = t->next;
+                delete t;
+                found = true;
             } else {
                 p = p->next;
             }
         }
-    }
-
-    void sortList() override {
-        if (!head || !head->next) return;
-        for (Node* i = head; i; i = i->next) {
-            for (Node* j = i->next; j; j = j->next) {
-                if (i->data > j->data) {
-                    swap(i->data, j->data);
-                }
-            }
+        if (!found && !(head->next && head->next->val == value)) {
+            cout << "未找到值 " << value << "。\n";
+        } else {
+            cout << "已删除所有值为 " << value << " 的节点。\n";
         }
-    }
-
-    void reverseList() {
-        Node* prev = nullptr;
-        Node* curr = head;
-        while (curr) {
-            Node* next = curr->next;
-            curr->next = prev;
-            prev = curr;
-            curr = next;
-        }
-        head = prev;
     }
 
     void display() const override {
-        cout << "单链表元素：";
-        Node* p = head;
+        cout << "链表元素：";
+        Node* p = head->next;
         while (p) {
-            cout << p->data << " ";
+            cout << p->val << " ";
             p = p->next;
         }
-        cout << endl;
+        cout << "\n";
+    }
+
+    // 原地交换节点值实现排序（稳定性不是重点）
+    void sortList() override {
+        // 取出节点到 vector 中（只为了排序值并回写），避免复杂的链表插入排序
+        vector<int> vals;
+        for (Node* p = head->next; p; p = p->next) vals.push_back(p->val);
+        sort(vals.begin(), vals.end());
+        Node* p = head->next;
+        int i = 0;
+        while (p) {
+            p->val = vals[i++];
+            p = p->next;
+        }
+    }
+
+    // 逆序（就地指针翻转）
+    void reverseList() {
+        Node* prev = nullptr;
+        Node* curr = head->next;
+        while (curr) {
+            Node* nxt = curr->next;
+            curr->next = prev;
+            prev = curr;
+            curr = nxt;
+        }
+        head->next = prev;
     }
 };
 
-// ======================== 主程序 ========================
+// ================= 主程序 =================
 int main() {
-    Base* p = nullptr;
-    int ch;
-    cout << "1. 顺序表  2. 单链表\n请选择：";
-    cin >> ch;
-    if (ch == 1) p = new SeqList();
-    else p = new LinList();
+    Base* list = nullptr;
+    cout << "请选择要创建的数据结构：1. 顺序表  2. 单链表\n输入 1 或 2：";
+    int t;
+    while (!(cin >> t) || (t != 1 && t != 2)) {
+        cout << "请输入 1 或 2：";
+        cin.clear();
+        string dummy; cin >> dummy;
+    }
+    if (t == 1) list = new SeqList();
+    else list = new LinList();
 
-    int op;
-    do {
-        cout << "\n1. 创建表\n2. 插入\n3. 删除\n4. 显示\n5. 链表逆序(仅链表)\n0. 退出\n选择：";
-        cin >> op;
+    while (true) {
+        cout << "\n----- 菜单 -----\n";
+        cout << "1. 创建表（从头输入，@ 结束）\n";
+        cout << "2. 插入元素（在指定值后插入多个，以 @ 结束）\n";
+        cout << "3. 删除元素（按值删除所有）\n";
+        cout << "4. 显示\n";
+        cout << "5. 链表逆序（仅单链表有效）\n";
+        cout << "0. 退出\n";
+        cout << "请选择：";
+
+        int op;
+        if (!(cin >> op)) {
+            cin.clear();
+            string bad; cin >> bad;
+            cout << "非法输入，重试。\n";
+            continue;
+        }
+
+        if (op == 0) break;
         if (op == 1) {
-            p->create();
+            list->create();
         } else if (op == 2) {
-            int target, val, times;
-            cout << "请输入要在其后插入的元素值：";
-            cin >> target;
-            cout << "请输入要插入的值：";
-            cin >> val;
-            cout << "插入次数：";
-            cin >> times;
-            for (int i = 0; i < times; ++i) p->insertAfter(target, val);
+            cout << "指定在哪个值之后插入（若未找到则插到尾部），请输入目标值：";
+            string tok; cin >> tok;
+            int target;
+            if (!tryParseInt(tok, target)) {
+                cout << "目标值必须为整数，操作取消。\n";
+                continue;
+            }
+            list->insertAfterTarget(target);
         } else if (op == 3) {
-            int val;
             cout << "请输入要删除的值：";
-            cin >> val;
-            p->deleteValue(val);
+            string tok; cin >> tok;
+            int val;
+            if (!tryParseInt(tok, val)) {
+                cout << "必须输入整数。\n";
+                continue;
+            }
+            list->deleteValue(val);
         } else if (op == 4) {
-            p->display();
+            list->display();
         } else if (op == 5) {
-            LinList* lp = dynamic_cast<LinList*>(p);
+            LinList* lp = dynamic_cast<LinList*>(list);
             if (lp) {
                 lp->reverseList();
-                cout << "逆序完成。\n";
+                cout << "链表已逆序（就地翻转）。\n";
+                lp->display();
             } else {
-                cout << "当前是顺序表，无法逆序。\n";
+                cout << "当前是顺序表，无法逆序（该操作仅对单链表有效）。\n";
             }
+        } else {
+            cout << "无效选项。\n";
         }
-    } while (op != 0);
+    }
 
-    delete p;
+    delete list;
+    cout << "程序退出。\n";
     return 0;
 }
