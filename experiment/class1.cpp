@@ -109,6 +109,9 @@ public:
     void sortList() override {
         sort(data.begin(), data.end());
     }
+
+
+
 };
 
 //单链表
