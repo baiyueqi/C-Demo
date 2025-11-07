@@ -1,0 +1,6 @@
+this is a sample text for huffman coding
+hello world! this is huffman coder implementation.
+abcdefghijklmnopqrstuvwxyz
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+1234567890
+!@#$%^&*()_+-=[]{}|;:,.<>?
