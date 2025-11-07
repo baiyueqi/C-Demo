@@ -33,20 +33,121 @@ struct Compare {
     }
 };
 
+// 哈夫曼编码器类
 class HuffmanCoder {
 private:
     shared_ptr<HuffmanNode> root;           // 哈夫曼树根节点
-    map<char, string> huffmanCodes;         // 字符到哈夫曼编码的映射
-    map<string, char> reverseHuffmanCodes;  // 哈夫曼编码到字符的映射
+    map<char, string> huffmanCodes;         // 字符到哈夫曼编码的映射(编码时使用)
+    map<string, char> reverseHuffmanCodes;  // 哈夫曼编码到字符的映射(解码时使用)
+    
+    // 工具方法：读取二进制文件为字符串
+    string readBinaryFileToString(const string& filename) {
+        ifstream inFile(filename, ios::binary);
+        if (!inFile) {
+            cerr << "错误：无法打开文件 " << filename << endl;
+            return "";
+        }
+        // 读取文件内容并转换为二进制字符串
+        string bitString;
+        char byte;
+        while (inFile.get(byte)) {
+            for (int i = 7; i >= 0; i--) {//从高位到低位
+                bitString += (byte & (1 << i)) ? '1' : '0';
+            }
+        }
+        inFile.close();
+        return bitString;
+    }
+    
+    // 格式化输出代码字符串
+    void writeFormattedCode(const string& bitString, ostream& os, const string& printFile = "") {
+        int lineCount = 0;
+        ofstream outFile;
+        if (!printFile.empty()) {
+            outFile.open(printFile);
+        }
+        
+        // 每行输出50位代码
+        for (size_t i = 0; i < bitString.length(); i++) {//(每个位)
+            os << bitString[i];
+            //输出位
+            if (outFile.is_open()) {
+                outFile << bitString[i];
+            }
+            
+            //已输出50位,换行并显示位置标记
+            if ((i + 1) % 50 == 0) {
+                os << " [" << setw(3) << (lineCount + 1) * 50 << "]" << endl;
+                if (outFile.is_open()) {
+                    outFile << endl;
+                }
+                lineCount++;
+            }
+        }
+        
+        // 处理最后一行不足50位的情况
+        if (bitString.length() % 50 != 0) {
+            int remaining = bitString.length() % 50;
+            os << " [" << setw(3) << (lineCount * 50 + remaining) << "]" << endl;
+            if (outFile.is_open()) {
+                outFile << endl;
+            }
+        }
+        
+        // 关闭文件
+        if (outFile.is_open()) {
+            outFile.close();
+        }
+    }
+    
+    // 格式化字符显示
+    string formatCharDisplay(char ch) {
+        if (ch == '\n') return "\\n";
+        else if (ch == ' ') return "空格";
+        else if (ch == '\t') return "\\t";
+        else return string(1, ch);
+    }
     
 public:
     // 构造函数
     HuffmanCoder() : root(nullptr) {}
     
+    // 创建示例文件（只在需要时创建）
+    bool createSampleFileIfNeeded(const string& filename) {
+        ifstream testFile(filename);
+        if (testFile.good()) {
+            testFile.close();
+            return false; // 文件已存在
+        }
+        
+        ofstream outFile(filename);
+        if (!outFile) {
+            cerr << "错误：无法创建文件 " << filename << endl;
+            return false;
+        }
+        
+        // 写入示例文本
+        outFile << "this is a sample text for huffman coding\n";
+        outFile << "hello world! this is huffman coder implementation.\n";
+        outFile << "abcdefghijklmnopqrstuvwxyz\n";
+        outFile << "ABCDEFGHIJKLMNOPQRSTUVWXYZ\n";
+        outFile << "1234567890\n";
+        outFile << "!@#$%^&*()_+-=[]{}|;:,.<>?";
+        
+        outFile.close();
+        cout << "已创建示例文件: " << filename << endl;
+        return true;
+    }
+    
     // 1. 初始化：读取文本文件，统计字符频率，构建哈夫曼树
     void initialize(const string& filename) {
-        // 创建示例文本文件（如果不存在）
-        createSampleFile(filename);
+        // 检查并创建文件（如果不存在）
+        bool created = createSampleFileIfNeeded(filename);
+        if (created) {
+            cout << "使用新创建的示例文件进行初始化..." << endl;
+        } else {
+            cout << "使用现有文件进行初始化..." << endl;
+        }
         
         // 统计字符频率
         map<char, int> freqMap;
@@ -56,6 +157,7 @@ public:
             return;
         }
         
+        // 读取文件并统计频率
         char ch;
         while (inFile.get(ch)) {
             freqMap[ch]++;
@@ -65,15 +167,7 @@ public:
         cout << "字符频率统计：" << endl;
         cout << "----------------------------------------" << endl;
         for (const auto& pair : freqMap) {
-            if (pair.first == '\n') {
-                cout << "\\n: " << pair.second << endl;
-            } else if (pair.first == ' ') {
-                cout << "空格: " << pair.second << endl;
-            } else if (pair.first == '\t') {
-                cout << "\\t: " << pair.second << endl;
-            } else {
-                cout << pair.first << ": " << pair.second << endl;
-            }
+            cout << formatCharDisplay(pair.first) << ": " << pair.second << endl;
         }
         cout << "----------------------------------------" << endl;
         
@@ -92,66 +186,41 @@ public:
         cout << "初始化完成！共统计 " << freqMap.size() << " 种字符。" << endl;
     }
     
-    // 创建示例文本文件
-    void createSampleFile(const string& filename) {
-        ifstream testFile(filename);
-        if (testFile.good()) {
-            testFile.close();
-            return; // 文件已存在
-        }
-        
-        ofstream outFile(filename);
-        if (!outFile) {
-            cerr << "错误：无法创建文件 " << filename << endl;
-            return;
-        }
-        
-        // 写入示例文本
-        outFile << "this is a sample text for huffman coding\n";
-        outFile << "hello world! this is huffman coder implementation.\n";
-        outFile << "abcdefghijklmnopqrstuvwxyz\n";
-        outFile << "ABCDEFGHIJKLMNOPQRSTUVWXYZ\n";
-        outFile << "1234567890\n";
-        outFile << "!@#$%^&*()_+-=[]{}|;:,.<>?";
-        
-        outFile.close();
-        cout << "已创建示例文件: " << filename << endl;
-    }
-    
     // 构建哈夫曼树
     void buildHuffmanTree(const map<char, int>& freqMap) {
         priority_queue<shared_ptr<HuffmanNode>, vector<shared_ptr<HuffmanNode>>, Compare> pq;
         
         // 创建叶子节点并加入优先队列
         for (const auto& pair : freqMap) {
-            pq.push(make_shared<HuffmanNode>(pair.first, pair.second));
+            pq.push(make_shared<HuffmanNode>(pair.first, pair.second));//(字符, 频率)
         }
         
         // 构建哈夫曼树
-        while (pq.size() > 1) {
-            auto left = pq.top(); pq.pop();
-            auto right = pq.top(); pq.pop();
-            
-            int sumFreq = left->freq + right->freq;
-            auto parent = make_shared<HuffmanNode>(sumFreq, left, right);
-            pq.push(parent);
+        while (pq.size() > 1) {//队列中有多个节点
+            auto left = pq.top(); pq.pop();//取出频率最小的两个节点
+            auto right = pq.top(); pq.pop();//取出频率次小的节点
+                        
+            int sumFreq = left->freq + right->freq;//计算新节点频率
+            auto parent = make_shared<HuffmanNode>(sumFreq, left, right);//创建新节点
+            pq.push(parent);//将新节点加入队列
         }
         
+        // 设置根节点
         if (!pq.empty()) {
-            root = pq.top();
+            root = pq.top();//队列中最后一个节点为根节点
         }
     }
     
     // 生成哈夫曼编码
-    void generateCodes(shared_ptr<HuffmanNode> node, string code) {
+    void generateCodes(shared_ptr<HuffmanNode> node, string code) {//(节点, 当前编码)
         if (node == nullptr) return;
-        
-        if (node->isLeaf()) {
-            huffmanCodes[node->ch] = code;
-            reverseHuffmanCodes[code] = node->ch;
+        // 叶子节点，保存编码
+        if (node->isLeaf()) {//判断是叶子节点
+            huffmanCodes[node->ch] = code;// 记录编码: 字符->当前编码;
+            reverseHuffmanCodes[code] = node->ch;//记录反向映射: 当前编码->字符
         } else {
-            generateCodes(node->left, code + "0");
-            generateCodes(node->right, code + "1");
+            generateCodes(node->left, code + "0");//左子节点, 当前编码 + "0"
+            generateCodes(node->right, code + "1");//右子节点, 当前编码 + "1"
         }
     }
     
@@ -160,15 +229,7 @@ public:
         cout << "\n哈夫曼编码表：" << endl;
         cout << "----------------------------------------" << endl;
         for (const auto& pair : huffmanCodes) {
-            if (pair.first == '\n') {
-                cout << "\\n: " << pair.second << endl;
-            } else if (pair.first == ' ') {
-                cout << "空格: " << pair.second << endl;
-            } else if (pair.first == '\t') {
-                cout << "\\t: " << pair.second << endl;
-            } else {
-                cout << pair.first << ": " << pair.second << endl;
-            }
+            cout << formatCharDisplay(pair.first) << ": " << pair.second << endl;
         }
         cout << "----------------------------------------" << endl;
     }
@@ -183,7 +244,7 @@ public:
         
         // 保存字符和频率信息
         vector<pair<char, int>> charFreqs;
-        collectCharFrequencies(root, charFreqs);
+        collectCharFrequencies(root, charFreqs);//文件写入: 数据大小 + (字符,频率)对数组
         
         int size = charFreqs.size();
         outFile.write(reinterpret_cast<char*>(&size), sizeof(size));
@@ -217,10 +278,12 @@ public:
             return;
         }
         
+        // 读取字符和频率信息
         map<char, int> freqMap;
         int size;
         inFile.read(reinterpret_cast<char*>(&size), sizeof(size));
         
+        // 读取(size)个(字符,频率)对
         for (int i = 0; i < size; i++) {
             char ch;
             int freq;
@@ -252,19 +315,23 @@ public:
             return;
         }
         
+        // 读取输入文件并进行编码
         char ch;
         string encodedText;
         while (inFile.get(ch)) {
-            encodedText += huffmanCodes[ch];
+            encodedText += huffmanCodes[ch];//// 查表获取编码
         }
         
         // 计算压缩率
         int originalBits = encodedText.length();
+        int originalBytes = originalBits / 8;
         int compressedBytes = (originalBits + 7) / 8;
-        double compressionRatio = (1.0 - (double)compressedBytes / (originalBits / 8.0)) * 100;
+        double compressionRatio = 0.0;
+        if (originalBytes > 0) {
+            compressionRatio = (1.0 - (double)compressedBytes / originalBytes) * 100;
+        }
         
         // 将编码后的字符串转换为字节写入文件
-        string byteString;
         for (size_t i = 0; i < encodedText.length(); i += 8) {
             string byte = encodedText.substr(i, 8);
             while (byte.length() < 8) {
@@ -281,7 +348,7 @@ public:
         outFile.close();
         
         cout << "编码完成！结果已保存到: " << outputFile << endl;
-        cout << "原始数据大小: " << (originalBits / 8) << " 字节" << endl;
+        cout << "原始数据大小: " << originalBytes << " 字节" << endl;
         cout << "压缩后大小: " << compressedBytes << " 字节" << endl;
         cout << "压缩率: " << fixed << setprecision(2) << compressionRatio << "%" << endl;
     }
@@ -292,37 +359,28 @@ public:
             loadHuffmanTree("hfmTree.dat");
         }
         
-        ifstream inFile(inputFile, ios::binary);
-        ofstream outFile(outputFile);
+        // 使用工具方法读取二进制文件
+        string bitString = readBinaryFileToString(inputFile);
+        if (bitString.empty()) return;
         
-        if (!inFile || !outFile) {
-            cerr << "错误：无法打开文件" << endl;
+        ofstream outFile(outputFile);
+        if (!outFile) {
+            cerr << "错误：无法创建文件 " << outputFile << endl;
             return;
         }
         
-        // 读取二进制数据并转换为位字符串
-        string bitString;
-        char byte;
-        while (inFile.get(byte)) {
-            for (int i = 7; i >= 0; i--) {
-                bitString += (byte & (1 << i)) ? '1' : '0';
-            }
-        }
-        
-        // 解码
+        // 解码(前缀匹配解码)
         string decodedText;
         string currentCode;
-        for (char bit : bitString) {
-            currentCode += bit;
-            if (reverseHuffmanCodes.find(currentCode) != reverseHuffmanCodes.end()) {
-                decodedText += reverseHuffmanCodes[currentCode];
-                currentCode.clear();
+        for (char bit : bitString) {//每个位
+            currentCode += bit;//currentCode += 当前位;
+            if (reverseHuffmanCodes.find(currentCode) != reverseHuffmanCodes.end()) {//currentCode 在编码表中
+                decodedText += reverseHuffmanCodes[currentCode];//输出对应字符
+                currentCode.clear();// currentCode清空
             }
         }
         
         outFile << decodedText;
-        
-        inFile.close();
         outFile.close();
         
         cout << "译码完成！结果已保存到: " << outputFile << endl;
@@ -331,48 +389,18 @@ public:
     
     // 4. 打印代码文件
     void printCodeFile(const string& codeFile, const string& printFile) {
-        ifstream inFile(codeFile, ios::binary);
-        ofstream outFile(printFile);
-        
-        if (!inFile || !outFile) {
-            cerr << "错误：无法打开文件" << endl;
-            return;
-        }
+        // 使用工具方法读取二进制文件
+        string bitString = readBinaryFileToString(codeFile);
+        if (bitString.empty()) return;
         
         cout << "代码文件内容（紧凑格式，每行50个代码）：" << endl;
         cout << "----------------------------------------" << endl;
         
-        string bitString;
-        char byte;
-        while (inFile.get(byte)) {
-            for (int i = 7; i >= 0; i--) {
-                bitString += (byte & (1 << i)) ? '1' : '0';
-            }
-        }
-        
-        // 输出到屏幕和文件
-        int lineCount = 0;
-        for (size_t i = 0; i < bitString.length(); i++) {
-            cout << bitString[i];
-            outFile << bitString[i];
-            
-            if ((i + 1) % 50 == 0) {
-                cout << " [" << setw(3) << (lineCount + 1) * 50 << "]" << endl;
-                outFile << endl;
-                lineCount++;
-            }
-        }
-        
-        if (bitString.length() % 50 != 0) {
-            int remaining = bitString.length() % 50;
-            cout << " [" << setw(3) << (lineCount * 50 + remaining) << "]" << endl;
-            outFile << endl;
-        }
+        // 使用工具方法格式化输出
+        writeFormattedCode(bitString, cout, printFile);
         
         cout << "----------------------------------------" << endl;
         cout << "总位数: " << bitString.length() << endl;
-        inFile.close();
-        outFile.close();
         
         cout << "代码打印完成！结果已保存到: " << printFile << endl;
     }
@@ -409,33 +437,25 @@ public:
     
 private:
     // 递归打印树结构
-    void printTree(shared_ptr<HuffmanNode> node, int level, ostream& os) {
+    void printTree(shared_ptr<HuffmanNode> node, int level, ostream& os) {//(节点, 缩进层级, 输出流)
         if (node == nullptr) return;
         
-        // 打印右子树
-        printTree(node->right, level + 1, os);
+        // 打印右子树（显示在上方）
+        printTree(node->right, level + 1, os);//(右子树, 层级+1, 输出流)
         
-        // 打印当前节点
+        // 打印当前节点(输出缩进 + 节点信息)
         for (int i = 0; i < level; i++) {
             os << "    ";
         }
         
         if (node->isLeaf()) {
-            if (node->ch == '\n') {
-                os << "\\n:" << node->freq << endl;
-            } else if (node->ch == ' ') {
-                os << "space:" << node->freq << endl;
-            } else if (node->ch == '\t') {
-                os << "\\t:" << node->freq << endl;
-            } else {
-                os << node->ch << ":" << node->freq << endl;
-            }
+            os << formatCharDisplay(node->ch) << ":" << node->freq << endl;
         } else {
             os << "*:" << node->freq << endl;
         }
         
-        // 打印左子树
-        printTree(node->left, level + 1, os);
+        // 打印左子树（显示在下方）
+        printTree(node->left, level + 1, os);//(左子树, 层级+1, 输出流)
     }
 };
 
@@ -453,30 +473,12 @@ void showMenu() {
     cout << "请选择操作: ";
 }
 
-// 创建测试文件
-void createTestFiles() {
-    cout << "创建测试文件中..." << endl;
-    
-    // 创建示例文本文件
-    ofstream sampleFile("sample.txt");
-    sampleFile << "this is a sample text for huffman coding\n";
-    sampleFile << "hello world! this is huffman coder implementation.\n";
-    sampleFile << "abcdefghijklmnopqrstuvwxyz\n";
-    sampleFile << "ABCDEFGHIJKLMNOPQRSTUVWXYZ\n";
-    sampleFile << "1234567890\n";
-    sampleFile << "!@#$%^&*()_+-=[]{}|;:,.<>?";
-    sampleFile.close();
-    
-    cout << "测试文件 'sample.txt' 已创建！" << endl;
-}
-
 int main() {
     HuffmanCoder huffmanCoder;
     int choice;
     string inputFile, outputFile;
     
     cout << "欢迎使用哈夫曼编/译码器！" << endl;
-    createTestFiles();
     
     do {
         showMenu();
