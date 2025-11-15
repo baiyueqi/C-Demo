@@ -1,48 +1,55 @@
 # Crawler.py
-import requests
-from bs4 import BeautifulSoup
-import time
-import re
-import logging
-import csv
-from typing import List, Dict, Optional
+import requests# 导入所需库
+from bs4 import BeautifulSoup# 导入BeautifulSoup用于HTML解析
+import time# 导入time用于延迟
+import re# 导入正则表达式库
+import logging# 导入日志库
+import csv# 导入csv库用于保存数据
+from typing import List, Dict, Optional# 导入类型提示
 
 # 设置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)# 创建日志记录器
 
+# 定义爬虫类
 class BookScraper:
-    def __init__(self, base_url: str = "http://books.toscrape.com", delay: float = 1.0):
-        self.base_url = base_url
-        self.delay = delay
-        self.session = requests.Session()
+    def __init__(self, base_url: str = "http://books.toscrape.com", delay: float = 1.0):# 初始化爬虫
+        self.base_url = base_url# 基础URL
+        self.delay = delay# 请求间隔时间
+        self.session = requests.Session()# 使用Session保持连接
+        # 设置请求头，模拟浏览器行为
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         })
-        self.books_data = []
-        
+        self.books_data = []# 存储爬取的图书数据
+
+    # 获取页面内容    
     def get_page_content(self, url: str) -> Optional[BeautifulSoup]:
-        try:
+        try:# 发送GET请求
             response = self.session.get(url, timeout=10)
             response.raise_for_status()
             return BeautifulSoup(response.content, 'html.parser')
-        except requests.RequestException as e:
+        except requests.RequestException as e:# 处理请求异常
             logger.error(f"请求失败 {url}: {e}")
             return None
     
+    # 获取前max_pages页的图书链接
     def get_limited_page_links(self, max_pages: int = 10) -> List[str]:
         """获取前max_pages页的图书链接"""
         book_links = []
-        
+        # 遍历每一页
         for page_num in range(1, max_pages + 1):
+            # 构造页面URL
             if page_num == 1:
                 url = f"{self.base_url}/index.html"
             else:
                 url = f"{self.base_url}/catalogue/page-{page_num}.html"
-            
+
+            # 获取页面内容
             logger.info(f"正在爬取第 {page_num}/{max_pages} 页: {url}")
             soup = self.get_page_content(url)
-            
+
+            # 检查页面是否获取成功
             if not soup:
                 logger.warning(f"无法获取第 {page_num} 页内容，跳过")
                 continue
@@ -51,6 +58,7 @@ class BookScraper:
             books = soup.find_all('article', class_='product_pod')
             logger.info(f"在第 {page_num} 页找到 {len(books)} 本图书")
             
+            # 提取每本图书的链接
             for book in books:
                 link = book.find('h3').find('a')['href']
                 # 处理相对URL
@@ -69,17 +77,21 @@ class BookScraper:
             
             # 页面间延迟
             time.sleep(self.delay)
-            
+
+        # 输出总链接数    
         logger.info(f"共找到 {len(book_links)} 本图书链接")
         return book_links
     
+    # 解析图书详情
     def parse_book_details(self, url: str) -> Optional[Dict]:
         logger.info(f"正在解析图书详情: {url}")
         soup = self.get_page_content(url)
         
+        # 检查页面是否获取成功
         if not soup:
             return None
-            
+        
+        # 解析图书信息    
         try:
             book_info = {}
             
@@ -157,18 +169,20 @@ class BookScraper:
             logger.error(f"解析图书详情失败 {url}: {e}")
             return None
     
+    # 爬取图书数据
     def scrape_books(self, max_pages: int = 10) -> List[Dict]:
         """爬取前max_pages页的图书"""
         logger.info(f"开始爬取前 {max_pages} 页图书...")
         book_links = self.get_limited_page_links(max_pages)
-        
+        # 逐本处理图书链接
         total_books = len(book_links)
         success_count = 0
         
+        # 遍历每本图书链接
         for i, link in enumerate(book_links, 1):
             logger.info(f"正在处理第 {i}/{total_books} 本图书")
             book_info = self.parse_book_details(link)
-            
+            # 记录成功的图书信息
             if book_info:
                 self.books_data.append(book_info)
                 success_count += 1
@@ -185,6 +199,7 @@ class BookScraper:
         logger.info(f"爬取完成！成功获取 {success_count}/{total_books} 本图书信息")
         return self.books_data
     
+    # 保存数据到CSV文件
     def save_to_csv(self, filename: str = "books_data.csv"):
         if not self.books_data:
             logger.warning("没有数据可保存")
@@ -195,6 +210,7 @@ class BookScraper:
             fieldnames = ['Title', 'Price', 'Availability', 'Category', 'Description', 'Rating', 'UPC']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             
+            # 写入表头
             writer.writeheader()
             for book in self.books_data:
                 writer.writerow(book)
@@ -203,12 +219,14 @@ class BookScraper:
         print(f"\n生成的CSV文件包含以下列：{', '.join(fieldnames)}")
         print(f"共保存了 {len(self.books_data)} 本图书信息")
     
+    # 分析数据
     def analyze_data(self):
         """直接分析内存中的数据"""
         if not self.books_data:
             print("没有数据可供分析")
             return
         
+        # 统计信息输出
         print("\n" + "="*50)
         print("数据分析结果")
         print("="*50)
@@ -227,6 +245,7 @@ class BookScraper:
             category = book['Category']
             category_count[category] = category_count.get(category, 0) + 1
         
+        # 按数量排序并输出前3个分类
         sorted_categories = sorted(category_count.items(), key=lambda x: x[1], reverse=True)
         for i in range(min(3, len(sorted_categories))):
             category, count = sorted_categories[i]
