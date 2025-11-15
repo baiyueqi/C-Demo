@@ -12,14 +12,14 @@
 #include <string.h>
 #include <ctype.h>
 
-#define N 26   // 26 个字母
+#define N 26   // 26 个字母,定义常量 N = 26 表示字母数。后续所有数组、模运算都以 N 为基数，方便统一维护
 
 /*-----------------------------------------
   将字母 A–Z/a–z 转换为 0–25
 -----------------------------------------*/
 static int letter_to_idx(char c) {
     if ('A' <= c && c <= 'Z') return c - 'A';
-    if ('a' <= c && c <= 'z') return c - 'a';
+    if ('a' <= c && c <= 'z') return c - 'a';//利用ASCII码的连续性，将大写字母和小写字母分别映射到0-25的范围内
     return -1;   // 非字母返回 -1
 }
 
@@ -29,11 +29,11 @@ static int letter_to_idx(char c) {
 static char idx_to_letter(int idx) {
     idx %= N;
     if (idx < 0) idx += N;
-    return (char)('A' + idx);
+    return (char)('A' + idx);//(char) 将结果强制转换回字符类型
 }
 
 /*---------------------------------------------------
-  以下为你提供图片中提取出的 3 个转子 wiring 映射
+  图片中提取出的 3 个转子 wiring 映射
   每个数组表示：forward[i] = j
   即：输入位置 i（字母 i）经过该转子，输出为 j。
   （位置未旋转时的静态 wiring）
