@@ -1,10 +1,8 @@
 /* enigma.c
-   使用你提供的三转子 wiring 实现的简易 Enigma 加密程序（带完整中文注释）
-   - 按你的教材要求：最左边 fast rotor 每次按键都转动一次
-   - fast 走一圈（回到 0）推动 medium 转动一次
-   - medium 走一圈推动 slow 转动一次
-   - Wiring 来自你上传的图片（已手动提取）
-   - 使用 Reflector B（教学常用反射器）
+   简易 Enigma 加密程序（根据图表配置）
+   - 三转子 wiring 根据图表设置
+   - 使用 Reflector B
+   - 支持大小写保持和非字母输出
 */
 
 #include <stdio.h>
@@ -12,14 +10,14 @@
 #include <string.h>
 #include <ctype.h>
 
-#define N 26   // 26 个字母,定义常量 N = 26 表示字母数。后续所有数组、模运算都以 N 为基数，方便统一维护
+#define N 26   // 26 个字母
 
 /*-----------------------------------------
   将字母 A–Z/a–z 转换为 0–25
 -----------------------------------------*/
 static int letter_to_idx(char c) {
     if ('A' <= c && c <= 'Z') return c - 'A';
-    if ('a' <= c && c <= 'z') return c - 'a';//利用ASCII码的连续性，将大写字母和小写字母分别映射到0-25的范围内
+    if ('a' <= c && c <= 'z') return c - 'a';
     return -1;   // 非字母返回 -1
 }
 
@@ -29,91 +27,64 @@ static int letter_to_idx(char c) {
 static char idx_to_letter(int idx) {
     idx %= N;
     if (idx < 0) idx += N;
-    return (char)('A' + idx);//(char) 将结果强制转换回字符类型
+    return (char)('A' + idx);
 }
 
-/*---------------------------------------------------
-  图片中提取出的 3 个转子 wiring 映射
-  每个数组表示：forward[i] = j
-  即：输入位置 i（字母 i）经过该转子，输出为 j。
-  （位置未旋转时的静态 wiring）
-----------------------------------------------------*/
-
-/* fast rotor（快速转子） forward 映射 */
+/*-----------------------------------------
+  根据图表重新定义三转子 wiring
+  注意：图表中的数字1-26对应A-Z，需要转换为0-25
+-----------------------------------------*/
 static const int fast_forward_init[N] = {
-    /* A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P  Q  R  S  T  U  V  W  X  Y  Z */
-      23,24,25, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15,16,17,18,19,20,21,22, 0, 1, 2, 3
+   23, 24, 25, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22  // 根据快转子列调整
 };
 
-/* medium rotor（中速转子） forward 映射 */
 static const int medium_forward_init[N] = {
-    /* A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P  Q  R  S  T  U  V  W  X  Y  Z */
-      19, 0,25, 4, 5, 6,11,22,13,10, 3, 2, 9,12,21,14, 8, 7,17,16,23,20,24, 1,15,18
+   20, 2, 14, 0, 18, 4, 16, 6, 22, 8, 24, 10, 25, 11, 3, 12, 5, 13, 7, 15, 9, 17, 1, 19, 21, 23   // 根据中转子列调整
 };
 
-/* slow rotor（慢速转子） forward 映射 */
 static const int slow_forward_init[N] = {
-    /* A  B  C  D  E  F  G  H  I  J  K  L  M  N  O  P  Q  R  S  T  U  V  W  X  Y  Z */
-       7, 1,25, 5, 3, 6, 2,13,15,17,21,10,11, 8, 0,24,25,14,16,23,22,18,20,19, 4,12
+   25, 19, 0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 1, 20, 21, 22, 23, 24, 2   // 根据慢转子列调整
 };
 
-/* Reflector B（标准反射器 B） */
+/* Reflector B */
 static const char reflectorB_str[] = "YRUHQSLDPXNGOKMIEBFZCWVJAT";
 
-/*---------------------------------------------------
-  根据 forward 映射构造 backward（反向）映射
-  backward[j] = i 代表：反向进入 j 时来自 i
-----------------------------------------------------*/
+/*-----------------------------------------
+  构造 backward 映射
+-----------------------------------------*/
 void build_backward(const int forward[N], int backward[N]) {
     for (int i = 0; i < N; ++i) backward[i] = -1;
-    for (int i = 0; i < N; ++i) {
-        int out = forward[i];
-        backward[out] = i;
-    }
     for (int i = 0; i < N; ++i)
-        if (backward[i] == -1)
-            backward[i] = i;  // 理论上不会发生，但为了安全做填补
+        backward[forward[i]] = i;
+    for (int i = 0; i < N; ++i)
+        if (backward[i] == -1) backward[i] = i;
 }
 
-/*---------------------------------------------------
-  构造反射器映射，将字符串转为整数数组
-----------------------------------------------------*/
+/* 构造 reflector 映射 */
 void build_reflector(const char *ref_str, int ref_map[N]) {
     for (int i = 0; i < N; ++i)
         ref_map[i] = letter_to_idx(ref_str[i]);
 }
 
-/*---------------------------------------------------
-  rotor 结构体：包含
-  - forward（正向表）
-  - backward（反向表）
-  - pos（当前旋转位置）
-----------------------------------------------------*/
+/*-----------------------------------------
+  rotor 结构体
+-----------------------------------------*/
 typedef struct {
     int forward[N];
     int backward[N];
-    int pos;   // 当前旋转位移（0–25）
+    int pos;
 } Rotor;
 
-/*---------------------------------------------------
-  正向通过转子一次
-  模拟 Enigma 真实电路：
-  1. 输入 + 当前转子偏移 pos
-  2. 查表 forward[]
-  3. 输出 - pos
-----------------------------------------------------*/
+/* 正向通过转子 */
 int rotor_forward(const Rotor *r, int entry) {
-    int translated = (entry + r->pos) % N;   // 入口位置 + 转子旋转位移
-    int wired = r->forward[translated];      // 查 forward wiring
-    int exit = (wired - r->pos) % N;         // 减去旋转位移
+    int translated = (entry + r->pos) % N;
+    int wired = r->forward[translated];
+    int exit = (wired - r->pos) % N;
     if (exit < 0) exit += N;
     return exit;
 }
 
-/*---------------------------------------------------
-  反向通过转子一次（反射器回程）
-  逻辑与 forward 相同，只是查 backward[]
-----------------------------------------------------*/
+/* 反向通过转子 */
 int rotor_backward(const Rotor *r, int entry) {
     int translated = (entry + r->pos) % N;
     int wired = r->backward[translated];
@@ -122,40 +93,27 @@ int rotor_backward(const Rotor *r, int entry) {
     return exit;
 }
 
-/*---------------------------------------------------
-  转子步进逻辑（按你教材所写的规则）
-  - 每次按键：fast 一定前进 1
-  - fast 完整一圈 → medium 前进 1
-  - medium 完整一圈 → slow 前进 1
-----------------------------------------------------*/
+/* 转子步进 */
 void step_rotors(Rotor *fast, Rotor *medium, Rotor *slow) {
     fast->pos = (fast->pos + 1) % N;
-
-    if (fast->pos == 0) { // fast 完成一圈
+    if (fast->pos == 0) {
         medium->pos = (medium->pos + 1) % N;
-
-        if (medium->pos == 0) // medium 也一圈，则 slow 前进
+        if (medium->pos == 0)
             slow->pos = (slow->pos + 1) % N;
     }
 }
 
-/*---------------------------------------------------
-  加密单个字母（大写 0–25），流程：
-  1. 转动转子
-  2. fast → medium → slow 正向通过
-  3. 反射器反射
-  4. slow → medium → fast 反向通过
-----------------------------------------------------*/
+/* 加密单个字符 */
 int enigma_encrypt_char(Rotor *fast, Rotor *medium, Rotor *slow,
                         const int reflector[N], int ch)
 {
-    step_rotors(fast, medium, slow);  // 每按一个键，先步进
+    step_rotors(fast, medium, slow);
 
     int x = rotor_forward(fast, ch);
     x = rotor_forward(medium, x);
     x = rotor_forward(slow, x);
 
-    x = reflector[x]; // 反射
+    x = reflector[x];
 
     x = rotor_backward(slow, x);
     x = rotor_backward(medium, x);
@@ -168,7 +126,6 @@ int enigma_encrypt_char(Rotor *fast, Rotor *medium, Rotor *slow,
 void init_rotor(Rotor *r, const int forward_init[N], int initial_pos) {
     for (int i = 0; i < N; ++i)
         r->forward[i] = forward_init[i];
-
     build_backward(r->forward, r->backward);
     r->pos = (initial_pos % N + N) % N;
 }
@@ -181,24 +138,57 @@ void print_positions(const Rotor *fast, const Rotor *medium, const Rotor *slow) 
            idx_to_letter(slow->pos));
 }
 
-/*---------------------------------------------------
-  主程序：输入初始位，输入明文，输出密文
-----------------------------------------------------*/
+/* 测试特定输入输出 */
+void test_specific(Rotor *fast, Rotor *medium, Rotor *slow, const int reflector[N]) {
+    printf("\n=== 测试特定序列 ===\n");
+    
+    // 重置到初始位置
+    init_rotor(fast, fast_forward_init, 0);  // A
+    init_rotor(medium, medium_forward_init, 0); // A  
+    init_rotor(slow, slow_forward_init, 0);  // A
+    
+    char test_input[] = "ABC";
+    printf("输入: %s\n", test_input);
+    printf("输出: ");
+    
+    for (int i = 0; test_input[i]; ++i) {
+        int idx = letter_to_idx(test_input[i]);
+        if (idx != -1) {
+            int enc = enigma_encrypt_char(fast, medium, slow, reflector, idx);
+            printf("%c", idx_to_letter(enc));
+        }
+    }
+    printf("\n");
+    
+    // 测试单步后的状态
+    printf("\n单步后位置: fast=%c medium=%c slow=%c\n", 
+           idx_to_letter(fast->pos), idx_to_letter(medium->pos), idx_to_letter(slow->pos));
+}
+
+/*-----------------------------------------
+  主程序
+-----------------------------------------*/
 int main(void) {
     Rotor fast, medium, slow;
     int reflector[N];
     build_reflector(reflectorB_str, reflector);
 
-    printf("=== Enigma 加密程序（使用你提供的三转子 wiring）===\n");
-    printf("请输入初始转子位置（fast medium slow，例如 ABC）：");
+    printf("=== Enigma 加密程序（根据图表配置）===\n");
+    
+    // 测试特定序列
+    test_specific(&fast, &medium, &slow, reflector);
 
+    printf("\n请输入初始转子位置（fast medium slow，例如 AAA）：");
+    
     char buf[128];
-    fgets(buf, sizeof(buf), stdin);
+    if (!fgets(buf, sizeof(buf), stdin)) {
+        printf("读取输入失败，默认使用 AAA。\n");
+        buf[0]='A'; buf[1]='A'; buf[2]='A'; buf[3]='\0';
+    }
 
     int pfast = 0, pmed = 0, pslow = 0;
     int found = 0;
 
-    /* 解析三个字母作为初始位置 */
     for (int i = 0; buf[i] && found < 3; ++i) {
         if (isalpha((unsigned char)buf[i])) {
             int v = toupper(buf[i]) - 'A';
@@ -214,7 +204,6 @@ int main(void) {
         pfast = pmed = pslow = 0;
     }
 
-    /* 初始化三个转子 */
     init_rotor(&fast, fast_forward_init, pfast);
     init_rotor(&medium, medium_forward_init, pmed);
     init_rotor(&slow, slow_forward_init, pslow);
@@ -236,14 +225,13 @@ int main(void) {
             int idx = letter_to_idx(c);
 
             if (idx == -1) {
-                out[outpos++] = c;  // 非字母原样输出
+                out[outpos++] = c;
                 continue;
             }
 
             int enc = enigma_encrypt_char(&fast, &medium, &slow, reflector, idx);
             char enc_c = idx_to_letter(enc);
 
-            // 保持大小写
             if ('a' <= c && c <= 'z')
                 enc_c = tolower(enc_c);
 
