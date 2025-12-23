@@ -14,6 +14,7 @@ int main() {
         cout << "3. 购票\n";
         cout << "4. 退票\n";
         cout << "5. 推荐中转航班\n";
+        cout << "6. 航班状态管理（管理员）\n";
         cout << "0. 退出系统\n";
         cout << "请选择：";
 
@@ -26,6 +27,7 @@ int main() {
         case 3: manager.buyTicket(); break;
         case 4: manager.refundTicket(); break;
         case 5: manager.recommendTransfer(); break;
+        case 6:manager.updateFlightStatus();break;
         case 0: return 0;
         default: cout << "无效选择\n";
         }

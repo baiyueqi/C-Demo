@@ -25,7 +25,9 @@ public:
     void buyTicket();
     void refundTicket();
     void recommendTransfer();
-
+    // 航班状态管理（管理员手动修改）
+    void updateFlightStatus();
+    
 private:
     vector<Flight> flights;   // 航班线性表
     priority_queue<Reservation, vector<Reservation>, ReservationCmp> reservations;
