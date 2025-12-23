@@ -14,6 +14,9 @@ public:
     // 加载航班数据
     void loadFlights(const string& file);
 
+    // 显示航班详细信息
+    void showFlightDetails(const string& flightId);
+
     // 显示所有航班
     void showAllFlights();
 

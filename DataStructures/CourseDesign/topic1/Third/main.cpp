@@ -15,7 +15,8 @@ int main() {
         cout << "4. 退票\n";
         cout << "5. 航班状态管理（管理员）\n";
         cout << "6. 推荐中转航班\n";
-        cout << "7. 保存数据\n";  // 新增
+        cout << "7. 查看航班详情\n";  // 新增
+        cout << "8. 保存数据\n";
         cout << "0. 退出\n";
         cout << "请选择：";
 
@@ -29,9 +30,16 @@ int main() {
         case 4: manager.refundTicket(); break;
         case 5: manager.updateFlightStatus(); break;
         case 6: manager.recommendTransfer(); break;
-        case 7: manager.saveFlights("flights.txt"); break;  // 新增
+        case 7: {  // 新增
+            string id;
+            cout << "请输入航班号：";
+            cin >> id;
+            manager.showFlightDetails(id);
+            break;
+        }
+        case 8: manager.saveFlights("flights.txt"); break;
         case 0: 
-            manager.saveFlights("flights.txt");  // 退出前自动保存
+            manager.saveFlights("flights.txt");
             return 0;
         default: cout << "无效选择\n";
         }
