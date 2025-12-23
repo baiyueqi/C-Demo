@@ -10,24 +10,24 @@ int main() {
     while (true) {
         cout << "\n====== 飞机票管理系统 ======\n";
         cout << "1. 显示所有航班\n";
-        cout << "2. 查询航班（按城市）\n";
+        cout << "2. 查询航班\n";
         cout << "3. 购票\n";
         cout << "4. 退票\n";
-        cout << "5. 推荐中转航班\n";
-        cout << "6. 航班状态管理（管理员）\n";
-        cout << "0. 退出系统\n";
+        cout << "5. 航班状态管理（管理员）\n";
+        cout << "6. 推荐中转航班\n";
+        cout << "0. 退出\n";
         cout << "请选择：";
 
-        int choice;
-        cin >> choice;
+        int c;
+        cin >> c;
 
-        switch (choice) {
+        switch (c) {
         case 1: manager.showAllFlights(); break;
         case 2: manager.searchByCity(); break;
         case 3: manager.buyTicket(); break;
         case 4: manager.refundTicket(); break;
-        case 5: manager.recommendTransfer(); break;
-        case 6:manager.updateFlightStatus();break;
+        case 5: manager.updateFlightStatus(); break;
+        case 6: manager.recommendTransfer(); break;
         case 0: return 0;
         default: cout << "无效选择\n";
         }

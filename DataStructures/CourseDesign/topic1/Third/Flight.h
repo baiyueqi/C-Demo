@@ -36,7 +36,6 @@ struct ReservationCmp {
 // 航班结构体
 struct Flight {
     string flightId;        // 航班号
-    string company;         // 航空公司
     string from;            // 出发城市
     string to;              // 到达城市
     string departTime;      // 起飞时间

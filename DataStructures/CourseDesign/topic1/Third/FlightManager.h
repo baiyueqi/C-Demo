@@ -1,39 +1,46 @@
-//系统核心管理类
 #ifndef FLIGHT_MANAGER_H
 #define FLIGHT_MANAGER_H
 
 #include "Flight.h"
-#include "Ticket.h"
 #include "FlightGraph.h"
 #include <vector>
-#include <queue>
+#include <string>
 
-using namespace std;
-
-// 比较预约优先级
-struct ReservationCmp {
-    bool operator()(const Reservation& a, const Reservation& b) {
-        return a.priority > b.priority;
-    }
-};
+using std::vector;
+using std::string;
 
 class FlightManager {
 public:
+    // 加载航班数据
     void loadFlights(const string& file);
-    void showAllFlights();
-    void searchByCity();
-    void buyTicket();
-    void refundTicket();
-    void recommendTransfer();
-    // 航班状态管理（管理员手动修改）
-    void updateFlightStatus();
-    
-private:
-    vector<Flight> flights;   // 航班线性表
-    priority_queue<Reservation, vector<Reservation>, ReservationCmp> reservations;
-    FlightGraph graph;
 
+    // 显示所有航班
+    void showAllFlights();
+
+    // 按城市查询航班
+    void searchByCity();
+
+    // 实时购票 / 预约抢票
+    void buyTicket();
+
+    // 退票并自动分配
+    void refundTicket();
+
+    // 管理员手动修改航班状态
+    void updateFlightStatus();
+
+    // 推荐中转航班
+    void recommendTransfer();
+
+private:
+    vector<Flight> flights; // 航班线性表
+    FlightGraph graph;      // 航班图
+
+    // 根据航班号查找航班
     Flight* findFlightById(const string& id);
+
+    // 添加预约
+    void addReservation(Flight& flight, const string& user);
 };
 
 #endif

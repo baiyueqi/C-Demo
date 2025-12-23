@@ -1,29 +1,34 @@
-//中转推荐实现（图 + BFS）
 #include "FlightGraph.h"
-#include<iostream>
-#include <algorithm>   
 #include <queue>
+#include <algorithm>
 
-// 添加航线
-void FlightGraph::addEdge(const string& from, const string& to) {
-    adjList[from].push_back(to);
+// 添加航线到图中
+void FlightGraph::addEdge(const string& from,
+                          const string& to,
+                          int price) {
+    adjList[from].push_back({to, price});
 }
 
-// 查找中转路径（BFS）
-vector<string> FlightGraph::findTransferPath(const string& from, const string& to) {
-    queue<string> q;
+// 使用类似 Dijkstra 的思想，按价格推荐路径
+vector<string> FlightGraph::recommendBestPath(const string& from,
+                                              const string& to) {
+    std::queue<string> q;
+    map<string, int> cost;
     map<string, string> prev;
+
     q.push(from);
-    prev[from] = "";
+    cost[from] = 0;
 
     while (!q.empty()) {
-        string cur = q.front(); q.pop();
-        if (cur == to) break;
+        string cur = q.front();
+        q.pop();
 
-        for (auto& next : adjList[cur]) {
-            if (!prev.count(next)) {
-                prev[next] = cur;
-                q.push(next);
+        for (auto& e : adjList[cur]) {
+            int newCost = cost[cur] + e.price;
+            if (!cost.count(e.to) || newCost < cost[e.to]) {
+                cost[e.to] = newCost;
+                prev[e.to] = cur;
+                q.push(e.to);
             }
         }
     }
@@ -31,9 +36,10 @@ vector<string> FlightGraph::findTransferPath(const string& from, const string& t
     vector<string> path;
     if (!prev.count(to)) return path;
 
-    for (string at = to; at != ""; at = prev[at])
+    for (string at = to; at != from; at = prev[at])
         path.push_back(at);
+    path.push_back(from);
 
-    reverse(path.begin(), path.end());
+    std::reverse(path.begin(), path.end());
     return path;
 }
