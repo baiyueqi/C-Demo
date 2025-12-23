@@ -53,24 +53,17 @@ void FlightManager::loadFlights(const std::string& filename) {
     buildFlightGraph();
 }
 
-// 显示所有航班,包含时间信息
+// 显示所有航班，包含时间信息
 void FlightManager::showAllFlights() {
     if (flights.empty()) {
         cout << "没有航班数据\n";
         return;
     }
-    
-    cout << "\n================================ 所有航班信息 ================================\n";
-    cout << left 
-         << setw(10) << "航班号"
-         << setw(15) << "出发->到达"
-         << setw(10) << "起飞时间"
-         << setw(10) << "到达时间"
-         << setw(10) << "票价"
-         << setw(10) << "座位"
-         << "状态" << endl;
-    
-    cout << string(75, '-') << endl;
+
+    cout << "\n";
+    cout << "+----------+---------------+----------+----------+--------+--------+-------+\n";
+    cout << "|✈️  航班号 | 出发->到达 | 起飞时间 | 到达时间 |  票价  |  座位  |   状态   |\n";
+    cout << "+----------+---------------+----------+----------+--------+--------+-------+\n";
     
     for (auto& f : flights) {
         string route = f.from + "->" + f.to;
@@ -79,20 +72,22 @@ void FlightManager::showAllFlights() {
         if (f.status == FlightStatus::NORMAL)
             status = "正常";
         else if (f.status == FlightStatus::DELAYED)
-            status = "延误(" + to_string(f.delayMinutes) + "分钟)";
+            status = "延误" + to_string(f.delayMinutes) + "分";
         else
             status = "取消";
         
-        cout << left
-             << setw(10) << f.flightId
-             << setw(15) << route
-             << setw(10) << f.departTime
-             << setw(10) << f.arriveTime
-             << setw(10) << f.price
-             << setw(10) << f.seats
-             << status << endl;
+        // 使用 printf 保持对齐
+        printf("| %-8s | %-13s |  %-7s |  %-7s | %-6d | %-6d | %-10s |\n",
+               f.flightId.c_str(),
+               route.c_str(),
+               f.departTime.c_str(),
+               f.arriveTime.c_str(),
+               f.price,
+               f.seats,
+               status.c_str());
     }
-    cout << string(75, '=') << endl;
+    
+    cout <<"+----------+---------------+----------+----------+--------+--------+-------+\n";
 }
 
 // 按城市查询
@@ -103,45 +98,70 @@ void FlightManager::searchByCity() {
     cout << "请输入到达城市：";
     cin >> to;
 
-    bool found = false;
+    if (from.empty() || to.empty()) {
+        cout << "城市名称不能为空！\n";
+        return;
+    }
     
-    cout << "\n============== 查询结果 ==============\n";
-    cout << left 
-         << setw(10) << "航班号"
-         << setw(12) << "起飞时间"
-         << setw(12) << "到达时间"
-         << setw(10) << "票价"
-         << setw(10) << "座位"
-         << "状态" << endl;
-    
-    cout << "--------------------------------------------------------\n";
+    if (from == to) {
+        cout << "出发和到达城市不能相同！\n";
+        return;
+    }
+
+    vector<Flight*> results;
     
     for (auto& f : flights) {
         if (f.from == from && f.to == to &&
             f.status != FlightStatus::CANCELLED) {
-            
-            cout << left
-                 << setw(10) << f.flightId
-                 << setw(12) << f.departTime
-                 << setw(12) << f.arriveTime
-                 << setw(10) << (to_string(f.price) + "元")
-                 << setw(10) << (to_string(f.seats) + "个");
-                 
-            if (f.status == FlightStatus::NORMAL)
-                cout << "正常";
-            else if (f.status == FlightStatus::DELAYED)
-                cout << "延误(" << f.delayMinutes << "分钟)";
-            
-            cout << endl;
-            found = true;
+            results.push_back(&f);
         }
     }
 
-    if (!found) {
-        cout << "无直飞航班\n";
-        recommendTransfer();
+    if (results.empty()) {
+        cout << "\n┌─────────────────────────────────────────────┐\n";
+        cout << "│            ⚠️ 查询结果通知                   │\n";
+        cout << "├─────────────────────────────────────────────┤\n";
+        cout << "│ 未找到从 " << setw(4) << left << from << " 到 " << setw(4) << left << to << " 的直飞航班            │\n";
+        cout << "└─────────────────────────────────────────────┘\n";
+        
+        cout << "是否推荐中转方案？(y/n): ";
+        char choice;
+        cin >> choice;
+        if (choice == 'y' || choice == 'Y') {
+            recommendTransfer();
+        }
+        return;
     }
-    cout << "===================================\n";
+
+    // 精美表格输出
+    cout << "\n";
+    cout << "┌─────────────────────────────────────────────────────────────────────────────────┐\n";
+    cout << "│                          ✈️  航班查询结果： " << setw(4) << left << from 
+         << " → " << setw(4) << left << to << "                          │\n";
+    cout << "├──────────┬────────────┬────────────┬────────────┬────────────┬──────────────────┤\n";
+    cout << "│  航班号  │  起飞时间  │  到达时间  │    票价    │    座位    │      状态        │\n";
+    cout << "├──────────┼────────────┼────────────┼────────────┼────────────┼──────────────────┤\n";
+    
+    for (auto f : results) {
+        string status;
+        
+        if (f->status == FlightStatus::NORMAL)
+            status = "✅ 正常";
+        else if (f->status == FlightStatus::DELAYED)
+            status = "⚠️ 延误" + to_string(f->delayMinutes) + "分";
+        
+        printf("│ %-8s │   %-8s │   %-8s │  ¥%-8d │  %-8d  │  %-12s       │\n",
+               f->flightId.c_str(),
+               f->departTime.c_str(),
+               f->arriveTime.c_str(),
+               f->price,
+               f->seats,
+               status.c_str());
+    }
+    
+    cout << "├──────────┴────────────┴────────────┴────────────┴────────────┴──────────────────┤\n";
+    printf("│                             共找到 %-3d 个航班                                   │\n", results.size());
+    cout << "└─────────────────────────────────────────────────────────────────────────────────┘\n";
 }
 
 // 实时购票
