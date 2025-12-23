@@ -31,10 +31,15 @@ public:
 
     // 推荐中转航班
     void recommendTransfer();
+        
+    // 保存航班数据
+    void saveFlights(const string& file);
 
 private:
     vector<Flight> flights; // 航班线性表
     FlightGraph graph;      // 航班图
+    // 构建航班图
+    void buildFlightGraph();
 
     // 根据航班号查找航班
     Flight* findFlightById(const string& id);

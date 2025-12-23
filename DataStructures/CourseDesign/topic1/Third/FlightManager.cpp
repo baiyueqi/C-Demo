@@ -47,6 +47,9 @@ void FlightManager::loadFlights(const std::string& filename) {
 
     fin.close();
     cout << "已加载航班数量：" << flights.size() << endl;
+      
+    // 构建航班图
+    buildFlightGraph();
 }
 
 // 显示所有航班
@@ -209,4 +212,48 @@ Flight* FlightManager::findFlightById(const string& id) {
         if (f.flightId == id)
             return &f;
     return nullptr;
+}
+
+void FlightManager::buildFlightGraph() {
+    graph = FlightGraph(); // 清空现有图
+    
+    for (const auto& f : flights) {
+        if (f.status != FlightStatus::CANCELLED) {
+            graph.addEdge(f.from, f.to, f.price);
+        }
+    }
+}
+
+void FlightManager::saveFlights(const std::string& filename) {
+    std::ofstream fout(filename);
+    if (!fout.is_open()) {
+        std::cout << "无法保存到文件\n";
+        return;
+    }
+
+    for (const auto& f : flights) {
+        fout << f.flightId << " "
+             << f.from << " "
+             << f.to << " "
+             << f.departTime << " "
+             << f.arriveTime << " "
+             << f.seats << " "
+             << f.price << " ";
+
+        switch (f.status) {
+            case FlightStatus::NORMAL:
+                fout << "正常";
+                break;
+            case FlightStatus::DELAYED:
+                fout << "延误";
+                break;
+            case FlightStatus::CANCELLED:
+                fout << "取消";
+                break;
+        }
+        fout << "\n";
+    }
+
+    fout.close();
+    cout << "航班数据已保存\n";
 }

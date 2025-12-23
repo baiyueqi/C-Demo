@@ -5,8 +5,11 @@
 // 添加航线到图中
 void FlightGraph::addEdge(const string& from,
                           const string& to,
-                          int price) {
-    adjList[from].push_back({to, price});
+                          int price,
+                          const string& flightId = "",
+                          const string& departTime = "",
+                          const string& arriveTime = "") {
+    adjList[from].push_back({to, price, flightId, departTime, arriveTime});
 }
 
 // 使用类似 Dijkstra 的思想，按价格推荐路径
