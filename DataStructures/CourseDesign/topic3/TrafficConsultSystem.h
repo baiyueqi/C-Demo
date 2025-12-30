@@ -1,11 +1,9 @@
-//主系统类声明
 #ifndef TRAFFICCONSULTSYSTEM_H
 #define TRAFFICCONSULTSYSTEM_H
 
 #include "Graph.h"
 #include <string>
 
-// 菜单选项枚举
 enum MenuOption {
     OPTION_EXIT = 0,
     OPTION_SHORTEST_PATH = 1,
@@ -18,12 +16,16 @@ enum MenuOption {
     OPTION_HELP = 8
 };
 
+enum AlgorithmOption {
+    ALGORITHM_DIJKSTRA = 0,
+    ALGORITHM_FLOYD = 1
+};
+
 class TrafficConsultSystem {
 private:
     Graph graph;
     bool dataLoaded;
     
-    // 常量定义
     const std::string DISTANCE_CSV = "city_distances.csv";
     const std::string ADJACENCY_CSV = "city_adjacency.csv";
     const std::string OUTPUT_FILE = "paths_output.txt";
@@ -32,31 +34,32 @@ private:
 public:
     TrafficConsultSystem();
     
-    // 系统控制
     void initialize();
     void run();
     void showMenu();
     
-    // 业务功能
-    void handleUserQuery();
     void handleShortestPath();
     void handleAllPaths();
     void handleKBypassPath();
     void handleKShortestPaths();
-    
-    // 验证功能
     void verifyCenterCity();
-    
-    // 测试功能
     void testPerformance();
     void testAlgorithms();
     
 private:
-    // 辅助函数
     void printWelcome();
     void printHelp();
     std::string getCityInput(const std::string& prompt);
     int getIntInput(const std::string& prompt, int min, int max);
+    int getAlgorithmChoice();
+    
+    // 新增的函数
+    bool validateCities(const std::string& srcCity, const std::string& destCity, 
+                       int srcIndex, int destIndex);
+    void calculateAndShowShortestPath(int srcIndex, int destIndex, int algorithm);
+    void showAlgorithmInfo(int algorithm);
+    void askForComparison(int srcIndex, int destIndex);
+    void compareAlgorithms(int srcIndex, int destIndex);
 };
 
-#endif // TRAFFICCONSULTSYSTEM_H
+#endif
