@@ -1,32 +1,34 @@
-//工具函数声明
 #ifndef UTILS_H
 #define UTILS_H
 
 #include <string>
 #include <vector>
 
+using namespace std;
+
 namespace Utils {
     const double PI = 3.14159265358979323846;
     
     // 字符串处理
-    std::string trim(const std::string& str);
-    std::vector<std::string> split(const std::string& str, char delimiter);
+    string trim(const string& str);                              // 去除空白字符
+    vector<string> split(const string& str, char delimiter);     // 分割字符串
     
     // 文件操作
-    bool fileExists(const std::string& filename);
-    std::vector<std::string> readLines(const std::string& filename);
+    bool fileExists(const string& filename);                     // 检查文件是否存在
+    vector<string> readLines(const string& filename);            // 读取文件所有行
     
     // 数学计算
-    double calculateDistance(double lat1, double lon1, double lat2, double lon2);
-    double toRadians(double degrees);
+    double calculateDistance(double lat1, double lon1,           // 计算球面距离
+                           double lat2, double lon2);
+    double toRadians(double degrees);                            // 角度转弧度
     
     // 格式化输出
-    std::string formatDistance(double distance);
-    std::string formatTime(double hours);
+    string formatDistance(double distance);                      // 格式化距离
+    string formatTime(double hours);                             // 格式化时间
     
     // 验证函数
-    bool isValidCityName(const std::string& name);
-    bool isProvincialCapital(const std::string& city);
+    bool isValidCityName(const string& name);                    // 验证城市名
+    bool isProvincialCapital(const string& city);                // 判断是否为省会
 };
 
-#endif // UTILS_H
+#endif
