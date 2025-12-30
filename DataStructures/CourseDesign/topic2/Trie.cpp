@@ -60,7 +60,13 @@ void SuffixTrie::build(const std::string& s) {
     for (int i = 0; i < n; ++i) {
         TrieNode* node = root;
         for (int j = i; j < n; ++j) {
-            int idx = s[j] - 'a';
+            char ch = s[j];
+            if (!std::isalpha(static_cast<unsigned char>(ch)))
+                break;  // 非字母直接断开这个后缀
+
+            ch = std::tolower(ch);
+            int idx = ch - 'a';
+
             if (!node->children[idx])
                 node->children[idx] = new TrieNode();
             node = node->children[idx];
@@ -68,16 +74,23 @@ void SuffixTrie::build(const std::string& s) {
     }
 }
 
+
 bool SuffixTrie::contains(const std::string& s) const {
     TrieNode* node = root;
     for (char ch : s) {
+        if (!std::isalpha(static_cast<unsigned char>(ch)))
+            return false;
+
+        ch = std::tolower(ch);
         int idx = ch - 'a';
+
         if (!node->children[idx])
             return false;
         node = node->children[idx];
     }
     return true;
 }
+
 
 //最长回文子串
 std::string longestPalindrome(const std::string& s) {
