@@ -10,6 +10,7 @@ void showMenu(){
     cout << "2. 查询两城市所有路径（最多10个节点）并排序输出\n";
     cout << "3. 查询两城市最短路径，绕过指定城市\n";
     cout << "4. 查询两城市第K短路径\n";
+    cout << "5. 验证：各省会到武汉中转不超过 2 个\n";
     cout << "0. 退出\n";
     cout << "请输入选项: ";
 }
@@ -74,6 +75,9 @@ int main(){
             }else{
                 cout<<"路径数量不足 "<<k<<" 条\n";
             }
+        }else if(choice == 5){
+            tcs.verifyWuhanCenter();
+        
         }else{
             cout<<"无效选项，请重新输入\n";
         }

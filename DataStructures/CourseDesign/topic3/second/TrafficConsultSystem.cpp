@@ -1,5 +1,8 @@
 #include "TrafficConsultSystem.h"
 #include <algorithm>
+#include <queue>
+#include <iostream>
+using namespace std;
 
 vector<int> TrafficConsultSystem::dijkstra(int start, vector<int>& prev, int skip){
     int n = g.n;
@@ -66,4 +69,63 @@ vector<pair<vector<int>,int>> TrafficConsultSystem::getAllPathsLengths(int start
     }
     sort(results.begin(),results.end(),[](auto &a, auto &b){ return a.second<b.second; });
     return results;
+}
+
+void TrafficConsultSystem::verifyWuhanCenter() {
+    int n = g.n;
+    vector<int> dist(n, -1);
+
+    int wuhan = g.cityMap["武汉"];
+
+    queue<int> q;
+    dist[wuhan] = 0;
+    q.push(wuhan);
+
+    // BFS
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        for (int v : g.adj[u]) {
+            if (dist[v] == -1) {
+                dist[v] = dist[u] + 1;
+                q.push(v);
+            }
+        }
+    }
+
+    // 排除城市
+    vector<string> excluded = {"香港", "澳门", "台北", "海口"};
+
+    bool ok = true;
+
+    cout << "\n【验证结果：省会城市到武汉的最少中转数】\n";
+    for (int i = 0; i < n; ++i) {
+        string city = g.cityNames[i];
+
+        // 排除
+        if (find(excluded.begin(), excluded.end(), city) != excluded.end())
+            continue;
+
+        int hop = dist[i];
+        int transfer = hop - 1;
+
+        cout << city << " -> 武汉 : ";
+        cout << "hop = " << hop << ", 中转省会 = " << transfer;
+
+        if (hop > 3) {
+            cout << " ❌ 超过 2 个中转\n";
+            ok = false;
+        } else {
+            cout << " ✅ 符合\n";
+        }
+    }
+
+    cout << "\n===========================\n";
+    if (ok) {
+        cout << "【结论】命题成立：\n";
+        cout << "全国其他省会城市（不含港澳、台北、海口）到武汉\n";
+        cout << "最少路径中转省会城市数均不超过 2 个。\n";
+    } else {
+        cout << "【结论】命题不成立：存在城市中转超过 2 个。\n";
+    }
+    cout << "===========================\n";
 }
