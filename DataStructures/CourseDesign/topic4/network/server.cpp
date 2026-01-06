@@ -5,6 +5,7 @@
 
 Server::Server(StorageEngine& e) : engine(e) {}
 
+//服务器开始工作
 void Server::start(int port) {
     int sfd = createServer(port);
 
