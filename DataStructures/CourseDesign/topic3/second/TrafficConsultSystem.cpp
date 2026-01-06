@@ -81,7 +81,7 @@ vector<pair<vector<int>,int>> TrafficConsultSystem::getAllPathsLengths(int start
 }
 
 //verifyWuhanCenter：验证“武汉是全国中心”
-//问题建模：全国省会城市到武汉的最少中转数不超过 2 个=无权图最短路径 hop 数
+//问题建模：全国省会城市到武汉的最少中转数不超过2个=无权图最短路径走过的边数(hop = 城市间“跳”的次数)
 void TrafficConsultSystem::verifyWuhanCenter() {
     int n = g.n;
     vector<int> dist(n, -1);
@@ -92,7 +92,7 @@ void TrafficConsultSystem::verifyWuhanCenter() {
     dist[wuhan] = 0;
     q.push(wuhan);
 
-    // BFS
+    // BFS(BFS 第一次到达某节点的路径，一定是 hop 最少的路径)
     while (!q.empty()) {
         int u = q.front(); q.pop();
         for (int v : g.adj[u]) {

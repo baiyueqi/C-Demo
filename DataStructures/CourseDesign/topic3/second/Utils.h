@@ -2,6 +2,7 @@
 #include <bits/stdc++.h>
 using namespace std;
 
+//打印一条路径
 void printPath(const vector<string>& cityNames,const vector<int>& path){
     for(int i=0;i<path.size();i++){
         cout << cityNames[path[i]];
@@ -10,6 +11,7 @@ void printPath(const vector<string>& cityNames,const vector<int>& path){
     cout<<endl;
 }
 
+//将多条路径保存到文件
 void savePathsToFile(const string &filename, const vector<string>& cityNames, const vector<pair<vector<int>,int>>& paths){
     ofstream fout(filename);
     for(auto &p: paths){
