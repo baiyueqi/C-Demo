@@ -4,11 +4,11 @@
 #include <string>
 #include <vector>
 
-//Trie 节点
+//Trie 节点(Trie 的“最小单位”)
 struct TrieNode {
-    bool isEnd = false;
-    int count = 0;
-    TrieNode* children[26]{};
+    bool isEnd = false;//true:某个单词在这里结束;false:只是前缀，不是完整单词
+    int count = 0;//记录单词出现的次数
+    TrieNode* children[26]{};//每个节点最多有 26 个子节点,对应 26 个字母
 
     TrieNode();
 };
@@ -25,8 +25,9 @@ public:
     std::vector<std::pair<std::string, int>> getAllWords();
 
 private:
-    TrieNode* root;
+    TrieNode* root;//根节点(不存字符，只作为入口)
 
+    // 深度优先搜索辅助函数(一路往下走,遇到 isEnd == true,把 current 加入结果,回溯继续遍历)
     void dfs(TrieNode* node,
              std::string& current,
              std::vector<std::pair<std::string, int>>& result);
@@ -37,8 +38,8 @@ class SuffixTrie {
 public:
     SuffixTrie();
 
-    void build(const std::string& s);
-    bool contains(const std::string& s) const;
+    void build(const std::string& s);//构建后缀 Trie
+    bool contains(const std::string& s) const;//字符串s是否是原字符串的 子串
 
 private:
     TrieNode* root;
