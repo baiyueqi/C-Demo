@@ -1,12 +1,11 @@
 #pragma once
-#include "storage/storage.h"
+#include "../storage/storage.h"
 
 class Server {
 public:
-    explicit Server(int port);
-    void start();
+    explicit Server(StorageEngine& engine);
+    void start(int port);
 
 private:
-    int port;
-    StorageEngine storage;
+    StorageEngine& engine;
 };

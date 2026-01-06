@@ -1,16 +1,23 @@
 #pragma once
-#include <unordered_map>
-#include <string>
-#include <memory>
+#include <vector>
+#include "sds.h"
 
-class RedisObject;
+struct DictEntry {
+    SDS* key;
+    void* value;
+    DictEntry* next;
+};
 
 class Dict {
 public:
-    bool set(const std::string& key, std::shared_ptr<RedisObject> value);
-    std::shared_ptr<RedisObject> get(const std::string& key);
-    bool del(const std::string& key);
+    Dict(size_t size = 1024);
+    ~Dict();
+
+    void set(SDS* key, void* value);
+    void* get(const char* key);
+    bool del(const char* key);
 
 private:
-    std::unordered_map<std::string, std::shared_ptr<RedisObject>> table;
+    size_t hash(const char* key);
+    std::vector<DictEntry*> table;
 };

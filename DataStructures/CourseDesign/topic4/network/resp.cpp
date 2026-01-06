@@ -1,61 +1,49 @@
 #include "resp.h"
-#include <sstream>
-#include <iostream>
+#include <vector>
+#include <string>
+#include <cstring>
 
-std::vector<std::string> RESP::parse(const std::string& input) {
+std::vector<std::string> Resp::parse(const std::string& input) {
     std::vector<std::string> result;
-    std::istringstream stream(input);
-    
-    if (input.empty()) return result;
-    
-    char type;
-    stream >> type;
-    
-    // 如果是 RESP 数组格式：*3\r\n$3\r\nSET\r\n$1\r\na\r\n$3\r\n123\r\n
-    if (type == '*') {
-        int array_len;
-        stream >> array_len;
-        
-        // 跳过 \r\n
-        stream.ignore(2);
-        
-        for (int i = 0; i < array_len; i++) {
-            char bulk_type;
-            stream >> bulk_type;  // 应该是 '$'
-            
-            int str_len;
-            stream >> str_len;
-            
-            // 跳过 \r\n
-            stream.ignore(2);
-            
-            // 读取字符串
-            std::string str;
-            for (int j = 0; j < str_len; j++) {
-                char c;
-                stream.get(c);
-                str.push_back(c);
-            }
-            
-            result.push_back(str);
-            
-            // 跳过末尾的 \r\n
-            stream.ignore(2);
-        }
+
+    size_t i = 0;
+    size_t n = input.size();
+
+    // 必须以 * 开头（RESP Array）
+    if (n == 0 || input[i] != '*') return result;
+
+    // 跳过 "*<num>\r\n"
+    i = input.find("\r\n", i);
+    if (i == std::string::npos) return result;
+    i += 2;
+
+    while (i < n) {
+        if (input[i] != '$') break;
+
+        // 跳过 "$<len>\r\n"
+        i = input.find("\r\n", i);
+        if (i == std::string::npos) break;
+        i += 2;
+
+        // 读取真正的数据
+        size_t end = input.find("\r\n", i);
+        if (end == std::string::npos) break;
+
+        result.push_back(input.substr(i, end - i));
+        i = end + 2;
     }
-    // 如果不是 RESP 格式，按空格分割（兼容测试）
-    else {
-        // 把第一个字符放回去
-        stream.unget();
-        std::string all;
-        std::getline(stream, all);
-        
-        std::istringstream token_stream(all);
-        std::string token;
-        while (token_stream >> token) {
-            result.push_back(token);
-        }
-    }
-    
+
     return result;
+}
+
+std::string Resp::simple(const std::string& s) {
+    return "+" + s + "\r\n";
+}
+
+std::string Resp::bulk(const std::string& s) {
+    return "$" + std::to_string(s.size()) + "\r\n" + s + "\r\n";
+}
+
+std::string Resp::nullBulk() {
+    return "$-1\r\n";
 }

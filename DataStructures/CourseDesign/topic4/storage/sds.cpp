@@ -1,21 +1,20 @@
 #include "sds.h"
+#include <cstring>
+#include <cstdlib>
 
-SDS::SDS() = default;
-
-SDS::SDS(const std::string& str) : buffer(str) {}
-
-size_t SDS::length() const {
-    return buffer.size();
+SDS* sdsCreate(const char* init) {
+    size_t len = strlen(init);
+    SDS* s = new SDS;
+    s->len = len;
+    s->cap = len + 1;
+    s->buf = new char[s->cap];
+    memcpy(s->buf, init, len);
+    s->buf[len] = '\0';
+    return s;
 }
 
-const char* SDS::c_str() const {
-    return buffer.c_str();
-}
-
-std::string SDS::str() const {
-    return buffer;
-}
-
-void SDS::set(const std::string& s) {
-    buffer = s;
+void sdsFree(SDS* s) {
+    if (!s) return;
+    delete[] s->buf;
+    delete s;
 }
