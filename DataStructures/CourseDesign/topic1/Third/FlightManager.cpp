@@ -108,8 +108,8 @@ void FlightManager::searchByCity() {
         return;
     }
 
-    vector<Flight*> results;
-    
+    vector<Flight*> results;// 存储查询结果指针
+    // 查找符合条件的航班
     for (auto& f : flights) {
         if (f.from == from && f.to == to &&
             f.status != FlightStatus::CANCELLED) {
@@ -226,11 +226,11 @@ void FlightManager::buyTicket() {
     }
 }
 
-// 添加预约
+// 添加预约(Flight.h)
 void FlightManager::addReservation(Flight& flight, const string& user) {
-    static int orderCounter = 1;
+    static int orderCounter = 1;//静态局部变量
     flight.waitQueue.push(
-        Reservation(user, orderCounter++)
+        Reservation(user, orderCounter++)// 使用静态变量确保唯一订单号
     );
 }
 
@@ -243,9 +243,10 @@ void FlightManager::refundTicket() {
     Flight* f = findFlightById(id);
     if (!f) return;
 
-    f->seats++;
+    f->seats++;// 增加座位
     cout << "退票成功\n";
 
+    // 处理预约队列
     if (!f->waitQueue.empty()) {
         Reservation r = f->waitQueue.top();
         f->waitQueue.pop();
@@ -311,6 +312,7 @@ Flight* FlightManager::findFlightById(const string& id) {
     return nullptr;
 }
 
+// 构建航班图,排除取消航班
 void FlightManager::buildFlightGraph() {
     graph = FlightGraph(); // 清空现有图
     
@@ -323,6 +325,7 @@ void FlightManager::buildFlightGraph() {
     cout << "航班图构建完成\n";
 }
 
+// 保存航班数据
 void FlightManager::saveFlights(const std::string& filename) {
     std::ofstream fout(filename);
     if (!fout.is_open()) {
@@ -357,6 +360,7 @@ void FlightManager::saveFlights(const std::string& filename) {
     cout << "航班数据已保存\n";
 }
 
+// 显示航班详细信息
 void FlightManager::showFlightDetails(const string& flightId) {
     Flight* f = findFlightById(flightId);
     if (!f) {
