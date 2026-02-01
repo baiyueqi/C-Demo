@@ -11,6 +11,7 @@
     # nixpkgs.url = "github:NixOS/nixpkgs/unstable";
     nixpkgs.url = "github:NixOS/nixpkgs/24.11";
     utils.url = "github:numtide/flake-utils";
+    ml-pkgs.url = "github:nixvital/ml-pkgs";
 
     # vitalpkgs.url = "github:nixvital/vitalpkgs";
     # vitalpkgs.inputs.nixpkgs.follows = "nixpkgs";
@@ -85,7 +86,7 @@
                   # xeus-cling
                   #  drogon
                  ];
-
+                
                  # Setting up the environment variables you need during
                  # development.
                  shellHook = let
