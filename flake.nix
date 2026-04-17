@@ -78,12 +78,14 @@
 
               # Development Tools
               cmake
+              pkg-config
               DevPython
               # Development time dependencies
               #  gtest
 
               # Build time and Run time dependencies
               llvmPackages_16.clang
+              zlib
               (boost.override {
                 enablePython = true;
                 python = pkgs.python3;
