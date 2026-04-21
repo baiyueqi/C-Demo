@@ -11,7 +11,7 @@ struct TreeNode {
     TreeNode* left;
     TreeNode* right;
 
-    explicit TreeNode(int value) : val(value), left(nullptr), right(nullptr) {}
+    explicit TreeNode(int value) : val(value), left(nullptr), right(nullptr) {}//初始化防止隐式类型转换
 };
 
 vector<vector<int>> levelOrder(TreeNode* root) {
