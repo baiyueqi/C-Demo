@@ -1,0 +1,6 @@
+flow_id,src_ip,dst_ip,src_port,dst_port,protocol,packet_count,total_bytes,avg_packet_size,max_packet_size,min_packet_size,duration,avg_interval,interval_variance,avg_ttl,syn_count,ack_count,fin_count,rst_count,psh_count,unique_ports,label,confidence,reason
+10.0.0.2:50000 <-> 10.0.0.3:8001 TCP,10.0.0.2,10.0.0.3,50000,8001,TCP,1,40,40.0,40,40,0.0,0.0,0.0,64.0,1,0,0,0,0,2,Port_Scan,0.8,TCP probes to 5 destination ports
+10.0.0.2:50001 <-> 10.0.0.3:8002 TCP,10.0.0.2,10.0.0.3,50001,8002,TCP,1,40,40.0,40,40,0.0,0.0,0.0,64.0,1,0,0,0,0,2,Port_Scan,0.8,TCP probes to 5 destination ports
+10.0.0.2:50002 <-> 10.0.0.3:8003 TCP,10.0.0.2,10.0.0.3,50002,8003,TCP,1,40,40.0,40,40,0.0,0.0,0.0,64.0,1,0,0,0,0,2,Port_Scan,0.8,TCP probes to 5 destination ports
+10.0.0.2:50003 <-> 10.0.0.3:8004 TCP,10.0.0.2,10.0.0.3,50003,8004,TCP,1,40,40.0,40,40,0.0,0.0,0.0,64.0,1,0,0,0,0,2,Port_Scan,0.8,TCP probes to 5 destination ports
+10.0.0.2:50004 <-> 10.0.0.3:8005 TCP,10.0.0.2,10.0.0.3,50004,8005,TCP,1,40,40.0,40,40,0.0,0.0,0.0,64.0,1,0,0,0,0,2,Port_Scan,0.8,TCP probes to 5 destination ports

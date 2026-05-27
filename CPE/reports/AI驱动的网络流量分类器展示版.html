@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI 驱动的网络流量分类器 - 展示版</title>
+  <style>
+    :root {
+      --bg: #080d12;
+      --panel: #101821;
+      --panel2: #152130;
+      --line: #2b3c4f;
+      --text: #ecf6ff;
+      --muted: #9aadc1;
+      --cyan: #39d9ff;
+      --green: #67ee9a;
+      --amber: #ffd166;
+      --red: #ff6678;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      background:
+        linear-gradient(90deg, rgba(57, 217, 255, .06) 1px, transparent 1px),
+        linear-gradient(rgba(103, 238, 154, .04) 1px, transparent 1px),
+        radial-gradient(circle at 70% 20%, rgba(57, 217, 255, .16), transparent 34%),
+        var(--bg);
+      background-size: 44px 44px, 44px 44px, auto, auto;
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      overflow: hidden;
+    }
+
+    .deck {
+      height: 100vh;
+      width: 100vw;
+      overflow-y: auto;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+    }
+
+    .slide {
+      min-height: 100vh;
+      scroll-snap-align: start;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: 36px 54px 30px;
+      border-bottom: 1px solid var(--line);
+      position: relative;
+    }
+
+    .slide::after {
+      content: attr(data-page);
+      position: absolute;
+      right: 32px;
+      bottom: 24px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 18px;
+    }
+
+    .kicker {
+      color: var(--cyan);
+      font-size: 15px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .topline {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .content {
+      display: grid;
+      align-content: center;
+      gap: 26px;
+      padding: 30px 0 20px;
+    }
+
+    h1, h2, h3, p { margin: 0; }
+
+    h1 {
+      max-width: 1050px;
+      font-size: clamp(54px, 8vw, 104px);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      font-size: clamp(38px, 5vw, 70px);
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      font-size: 24px;
+      color: var(--cyan);
+    }
+
+    .lead {
+      max-width: 980px;
+      color: var(--muted);
+      font-size: 24px;
+      line-height: 1.55;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card {
+      border: 1px solid var(--line);
+      background: rgba(16, 24, 33, .86);
+      padding: 22px;
+      min-height: 150px;
+    }
+
+    .card strong {
+      display: block;
+      color: var(--text);
+      font-size: 30px;
+      margin-bottom: 8px;
+    }
+
+    .card span, .card p {
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.55;
+    }
+
+    .metric strong {
+      color: var(--cyan);
+      font-size: 48px;
+      line-height: 1;
+    }
+
+    .tag {
+      display: inline-block;
+      border: 1px solid currentColor;
+      color: var(--green);
+      padding: 4px 10px;
+      font-weight: 800;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .tag.warn { color: var(--amber); }
+    .tag.bad { color: var(--red); }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(120px, 1fr));
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .node {
+      border: 1px solid var(--line);
+      background: #0d1721;
+      display: grid;
+      place-items: center;
+      min-height: 108px;
+      padding: 16px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .arrow {
+      color: var(--cyan);
+      text-align: center;
+      font-size: 34px;
+      font-weight: 900;
+      align-self: center;
+    }
+
+    .steps {
+      display: grid;
+      gap: 14px;
+      counter-reset: step;
+    }
+
+    .step {
+      border-left: 3px solid var(--cyan);
+      background: rgba(16, 24, 33, .78);
+      padding: 14px 18px 14px 24px;
+      position: relative;
+    }
+
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      left: -16px;
+      top: 14px;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      background: var(--cyan);
+      color: #00131a;
+      font-weight: 900;
+    }
+
+    .step b { display: block; font-size: 22px; }
+    .step span { color: var(--muted); font-size: 18px; }
+
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      border: 1px solid var(--line);
+      background: #061018;
+      color: #d9f8ff;
+      padding: 20px;
+      font: 18px/1.55 "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      overflow: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: rgba(16, 24, 33, .86);
+      font-size: 18px;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 14px;
+      text-align: left;
+    }
+
+    th { color: var(--cyan); background: #0c1620; }
+    td { color: var(--muted); }
+
+    .bars { display: grid; gap: 18px; }
+    .bar {
+      display: grid;
+      grid-template-columns: 110px 1fr 110px;
+      gap: 14px;
+      align-items: center;
+      font-size: 20px;
+    }
+    .track {
+      height: 24px;
+      border: 1px solid var(--line);
+      background: #071018;
+    }
+    .fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+    }
+    .w100 { width: 100%; }
+    .w55 { width: 55%; }
+    .w04 { width: 4%; min-width: 12px; background: var(--amber); }
+
+    footer {
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      font-size: 14px;
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+    }
+
+    .controls {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      display: flex;
+      gap: 8px;
+      z-index: 10;
+      opacity: .72;
+      transition: opacity .18s ease, transform .18s ease;
+    }
+
+    .controls:hover {
+      opacity: 1;
+      transform: translateY(-1px);
+    }
+
+    button {
+      border: 1px solid var(--line);
+      background: rgba(8, 13, 18, .78);
+      color: var(--text);
+      width: 34px;
+      height: 34px;
+      font-size: 17px;
+      cursor: pointer;
+      border-radius: 999px;
+      backdrop-filter: blur(6px);
+    }
+
+    button:hover { border-color: var(--cyan); color: var(--cyan); }
+
+    .note {
+      border: 1px solid var(--line);
+      background: rgba(21, 33, 48, .78);
+      padding: 16px 18px;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .screenshot-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .shot {
+      border: 1px solid var(--line);
+      background: rgba(6, 16, 24, .88);
+      min-height: 190px;
+      display: grid;
+      grid-template-rows: 1fr auto;
+      overflow: hidden;
+    }
+
+    .shot img {
+      width: 100%;
+      height: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      background: #02070b;
+      display: block;
+    }
+
+    .shot-placeholder {
+      min-height: 170px;
+      display: none;
+      place-items: center;
+      padding: 18px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.5;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .shot figcaption {
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.45;
+      padding: 10px 12px;
+    }
+
+    .shot figcaption b {
+      color: var(--cyan);
+    }
+
+    @media (max-width: 900px) {
+      body { overflow: auto; }
+      .slide { padding: 24px; }
+      .cols-2, .cols-3, .cols-4, .flow, .screenshot-grid { grid-template-columns: 1fr; }
+      .arrow { display: none; }
+      .lead { font-size: 20px; }
+      .controls { display: none; }
+    }
+
+    @media print {
+      body { background: white; color: #15202b; overflow: visible; }
+      .deck { height: auto; overflow: visible; }
+      .slide {
+        min-height: 100vh;
+        page-break-after: always;
+        background: white;
+        color: #15202b;
+      }
+      .controls { display: none; }
+      .card, .node, pre, table, .note, .step, .shot {
+        background: white;
+        color: #15202b;
+        border-color: #b9c5d2;
+      }
+      .card span, .card p, td, .lead, .note, footer, .shot figcaption, .shot-placeholder { color: #405064; }
+    }
+  </style>
+</head>
+<body>
+  <div class="controls" aria-label="翻页控制">
+    <button id="prev" title="上一页">↑</button>
+    <button id="next" title="下一页">↓</button>
+  </div>
+
+  <main class="deck" id="deck">
+    <section class="slide" data-page="01 / 07">
+      <header><div class="kicker">题目二 · AI 驱动的网络流量分类器</div><div class="topline"></div></header>
+      <div class="content">
+        <h1>网络流量分类器</h1>
+        <p class="lead">读取 pcap/pcapng 或实时网卡数据，解析协议头部，按五元组聚合网络流，提取统计特征，用规则和 KNN 判断流量类别，并对攻击流量报警。</p>
+        <div class="grid cols-4">
+          <div class="card metric"><strong>342</strong><span>KNN 训练样本</span></div>
+          <div class="card metric"><strong>3</strong><span>训练类别：DNS / ICMP / Web</span></div>
+          <div class="card metric"><strong>42,749</strong><span>Web 样本解析包数</span></div>
+          <div class="card metric"><strong>105</strong><span>100 包样本实际解析包数</span></div>
+        </div>
+      </div>
+      <footer><span>AI 驱动的网络流量分类器</span><span>题目二</span></footer>
+    </section>
+
+    <section class="slide" data-page="02 / 07">
+      <header><div class="kicker">系统架构</div><div class="topline">从抓包到分类结果</div></header>
+      <div class="content">
+        <h2>一条完整的流量分析流水线</h2>
+        <div class="flow">
+          <div class="node">Wireshark / 实时网卡</div>
+          <div class="node">pcapng / RawPacket</div>
+          <div class="node">协议解析</div>
+          <div class="node">五元组聚合</div>
+          <div class="node">特征提取</div>
+          <div class="node">规则 / KNN / ALERT</div>
+        </div>
+        <div class="grid cols-3">
+          <div class="card"><strong>输入</strong><span>pcap、pcapng 或 Linux 原始套接字捕获的以太网帧。</span></div>
+          <div class="card"><strong>处理</strong><span>解析 Ethernet、IPv4、TCP、UDP、ICMP，并聚合为双向五元组流。</span></div>
+          <div class="card"><strong>输出</strong><span>终端类别、置信度、报警标识，以及可训练的 CSV 特征文件。</span></div>
+        </div>
+        <div class="screenshot-grid">
+          <figure class="shot">
+            <img src="screenshots/terminal-web-analysis.png" alt="Web 样本分析终端截图" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+            <div class="shot-placeholder">待添加截图：运行 Web 样本分析命令，显示 parsed_packets、flows、Web 分类结果。</div>
+            <figcaption>离线 pcapng 分析结果：Web 样本可完成解析、聚合和分类。</figcaption>
+          </figure>
+          <figure class="shot">
+            <img src="screenshots/project-modules.png" alt="项目模块目录截图" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+            <div class="shot-placeholder">待添加截图：项目目录结构，突出 parser.py、flow.py、features.py、classifier.py、ml.py。</div>
+            <figcaption>核心模块目录：读取、解析、聚合、特征、分类、KNN 分工明确。</figcaption>
+          </figure>
+        </div>
+      </div>
+      <footer><span>System Pipeline</span><span>pcap / pcapng / RawPacket</span></footer>
+    </section>
+
+    <section class="slide" data-page="03 / 07">
+      <header><div class="kicker">基础功能</div><div class="topline">核心功能正确实现</div></header>
+      <div class="content">
+        <h2>pcap 读取、五元组特征、CSV 输出</h2>
+        <div class="grid cols-2">
+          <div class="card">
+            <strong>已实现功能</strong>
+            <span>支持 pcap/pcapng；解析 Ethernet、IPv4、TCP、UDP、ICMP；按双向五元组聚合；提取包数、字节数、平均包长、间隔方差、TTL、TCP flags。</span>
+          </div>
+          <div class="card">
+            <strong>样本结果</strong>
+            <span>DNS：526 包、245 流；ICMP：8 包、1 流；Web：42749 包、96 流；100 包样本：105 包、19 流。</span>
+          </div>
+        </div>
+        <div class="screenshot-grid">
+          <figure class="shot">
+            <img src="screenshots/csv-features.png" alt="CSV 特征文件截图" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+            <div class="shot-placeholder">待添加截图：CSV 特征表，展示 flow_id、protocol、packet_count、avg_packet_size、label、confidence。</div>
+            <figcaption>CSV 特征输出：一条流对应一行特征和分类结果。</figcaption>
+          </figure>
+          <figure class="shot">
+            <img src="screenshots/live-100-predict.png" alt="100 包样本预测截图" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+            <div class="shot-placeholder">待添加截图：live_100.pcapng 预测结果，显示 parsed_packets=105、flows=19。</div>
+            <figcaption>100 包样本预测：对应课程要求中的抓取 100 个包后输出类别和置信度。</figcaption>
+          </figure>
+        </div>
+      </div>
+      <footer><span>Core Features</span><span>Flow Features + CSV</span></footer>
+    </section>
+
+    <section class="slide" data-page="04 / 07">
+      <header><div class="kicker">五层原理</div><div class="topline">HTTP/HTTPS 请求如何被捕获</div></header>
+      <div class="content">
+        <h2>封装看发送，解封装看抓包</h2>
+        <div class="steps">
+          <div class="step"><b>应用层</b><span>浏览器产生 HTTP 请求；HTTPS 场景下内容经 TLS 加密。</span></div>
+          <div class="step"><b>传输层</b><span>TCP 面向连接、可靠、有序；UDP 无连接、开销低。程序同时解析 TCP/UDP 端口和 TCP flags。</span></div>
+          <div class="step"><b>网络层</b><span>IPv4 头部包含源/目的 IP、TTL、协议号；路由器按目的 IP 转发，TTL 每跳递减。</span></div>
+          <div class="step"><b>链路层</b><span>Ethernet 使用 MAC 在同一链路转发；ARP 用 IP 查询下一跳 MAC，MAC 不跨路由直达。</span></div>
+          <div class="step"><b>Socket 关系</b><span>Socket 是应用使用协议栈的接口；本项目实时抓包使用 AF_PACKET 从链路层捕获帧。</span></div>
+        </div>
+        <div class="screenshot-grid">
+          <figure class="shot">
+            <img src="screenshots/wireshark-five-layers.png" alt="Wireshark 五层协议字段截图" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+            <div class="shot-placeholder">待添加截图：Wireshark 展开 Frame、Ethernet II、IPv4、TCP 字段。</div>
+            <figcaption>Wireshark 五层字段展开：证明程序解析的字段来自真实协议头部。</figcaption>
+          </figure>
+          <figure class="shot">
+            <img src="screenshots/wireshark-web-filter.png" alt="Wireshark Web 流量过滤截图" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+            <div class="shot-placeholder">待添加截图：过滤条件 tcp.port == 80 or tcp.port == 443，展示 Web 流量。</div>
+            <figcaption>Web 流量过滤：HTTPS 内容不可见，但端口、协议和统计行为仍可用于分类。</figcaption>
+          </figure>
+        </div>
+      </div>
+      <footer><span>Network Layers</span><span>Encapsulation / Decapsulation</span></footer>
+    </section>
+
+    <section class="slide" data-page="05 / 07">
+      <header><div class="kicker">AI 集成</div><div class="topline">KNN 训练、保存、加载、预测</div></header>
+      <div class="content">
+        <h2>把抓包特征变成机器学习样本</h2>
+        <div class="grid cols-2">
+          <div class="card"><strong>训练逻辑</strong><span>从 CSV 读取带标签流，协议 one-hot，数值特征归一化，使用 KNN 距离加权投票。</span></div>
+          <div class="card"><strong>当前模型</strong><span>342 条真实流，3 类标签：DNS、ICMP、Web；模型保存为 `models/knn_model.json`，预测输出类别和置信度，并分析未知类误差。</span></div>
+        </div>
+        <div class="screenshot-grid">
+          <figure class="shot">
+            <img src="screenshots/knn-train.png" alt="KNN 训练终端截图" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+            <div class="shot-placeholder">待添加截图：KNN 训练命令输出，包含 samples=342、labels=DNS/ICMP/Web、k=3。</div>
+            <figcaption>KNN 训练结果：模型样本数、类别和 k 值清楚可见。</figcaption>
+          </figure>
+          <figure class="shot">
+            <img src="screenshots/knn-predict.png" alt="KNN 预测终端截图" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+            <div class="shot-placeholder">待添加截图：加载模型预测样本，显示 ml_label 和 ml_confidence。</div>
+            <figcaption>KNN 预测结果：加载保存模型后输出流量类别和置信度。</figcaption>
+          </figure>
+        </div>
+      </div>
+      <footer><span>AI Integration</span><span>KNN Training + Prediction</span></footer>
+    </section>
+
+    <section class="slide" data-page="06 / 07">
+      <header><div class="kicker">拓展与验证</div><div class="topline">攻击报警、自采样本、权限说明</div></header>
+      <div class="content">
+        <h2>完成选做功能，也说明系统边界</h2>
+        <div class="grid cols-4">
+          <div class="card"><span class="tag">ALERT</span><strong>SYN_Flood</strong><span>大量 SYN，ACK 很少。</span></div>
+          <div class="card"><span class="tag">ALERT</span><strong>TCP_Probe</strong><span>短 TCP 探测流。</span></div>
+          <div class="card"><span class="tag">ALERT</span><strong>Port_Scan</strong><span>同一源目标访问多个端口。</span></div>
+          <div class="card"><span class="tag warn">分析</span><strong>误差来源</strong><span>规则可能误报，KNN 未知类会归入近邻类别。</span></div>
+        </div>
+        <div class="screenshot-grid">
+          <figure class="shot">
+            <img src="screenshots/alert-port-scan.png" alt="端口扫描报警终端截图" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+            <div class="shot-placeholder">待添加截图：false_positive_port_scan.pcap 运行结果，显示 ALERT Port_Scan。</div>
+            <figcaption>攻击报警输出：端口扫描会被标记为 ALERT。</figcaption>
+          </figure>
+          <figure class="shot">
+            <img src="screenshots/tests-passed.png" alt="测试通过截图" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+            <div class="shot-placeholder">待添加截图：测试通过结果，展示规则分类、KNN、Port Scan 检测测试。</div>
+            <figcaption>测试验证结果：规则分类、KNN 和攻击检测流程通过验证。</figcaption>
+          </figure>
+          <figure class="shot">
+            <img src="screenshots/live-capture-permission.png" alt="实时抓包权限提示截图" onerror="this.style.display='none'; this.nextElementSibling.style.display='grid';">
+            <div class="shot-placeholder">待添加截图：实时抓包权限提示，显示 Operation not permitted 或 CAP_NET_RAW 提示。</div>
+            <figcaption>实时抓包入口：代码已实现，当前环境因权限受限，使用 100 包离线样本等价展示。</figcaption>
+          </figure>
+        </div>
+      </div>
+      <footer><span>Extension</span><span>ALERT + Validation</span></footer>
+    </section>
+
+    <section class="slide" data-page="07 / 07">
+      <header><div class="kicker">总结</div><div class="topline">完成度与答辩要点</div></header>
+      <div class="content">
+        <h2>完成了从抓包到分类报警的主流程</h2>
+        <div class="grid cols-2">
+          <div class="card">
+            <strong>一句话总结</strong>
+            <span>系统把真实网络包解析成五元组流，再把流转换成特征，用规则和 KNN 输出类别、置信度和攻击报警。</span>
+          </div>
+          <div class="card">
+            <strong>当前存在的问题</strong>
+            <span>实时抓包依赖 root 或 CAP_NET_RAW 权限；规则报警可能误报；KNN 训练类别较少，未知流量会归入最接近的已知类。</span>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>项目部分</th><th>完成情况</th></tr></thead>
+          <tbody>
+            <tr><td>流量分析链路</td><td>完成 pcap/pcapng 读取、协议解析、五元组聚合和 CSV 特征输出</td></tr>
+            <tr><td>协议理解展示</td><td>结合 Wireshark 截图说明 HTTP/HTTPS 的五层封装与解封装</td></tr>
+            <tr><td>模型分类能力</td><td>完成 KNN 训练、模型保存、模型加载和预测结果输出</td></tr>
+            <tr><td>拓展功能</td><td>实现 SYN Flood、TCP Probe、Port Scan 报警，并完成真实样本采集</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <footer><span>Summary</span><span>Evidence-Based Report</span></footer>
+    </section>
+  </main>
+
+  <script>
+    const deck = document.getElementById("deck");
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    let index = 0;
+
+    function go(next) {
+      index = Math.max(0, Math.min(slides.length - 1, next));
+      slides[index].scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    document.getElementById("prev").addEventListener("click", () => go(index - 1));
+    document.getElementById("next").addEventListener("click", () => go(index + 1));
+
+    document.addEventListener("keydown", (event) => {
+      if (["ArrowDown", "ArrowRight", "PageDown", " "].includes(event.key)) {
+        event.preventDefault();
+        go(index + 1);
+      }
+      if (["ArrowUp", "ArrowLeft", "PageUp"].includes(event.key)) {
+        event.preventDefault();
+        go(index - 1);
+      }
+      if (event.key === "Home") go(0);
+      if (event.key === "End") go(slides.length - 1);
+    });
+
+    deck.addEventListener("scroll", () => {
+      const current = Math.round(deck.scrollTop / window.innerHeight);
+      index = Math.max(0, Math.min(slides.length - 1, current));
+    }, { passive: true });
+  </script>
+</body>
+</html>

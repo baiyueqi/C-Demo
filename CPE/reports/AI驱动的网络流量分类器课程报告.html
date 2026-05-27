@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI 驱动的网络流量分类器课程报告</title>
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --panel: #121821;
+      --panel-2: #17202b;
+      --line: #283544;
+      --text: #e7eef7;
+      --muted: #91a3b7;
+      --cyan: #38d5ff;
+      --green: #65e89b;
+      --amber: #ffc857;
+      --red: #ff6b7a;
+      --violet: #b78cff;
+      --paper: #f5f7fb;
+      --ink: #1b2430;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        linear-gradient(90deg, rgba(56, 213, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(rgba(101, 232, 155, 0.04) 1px, transparent 1px),
+        var(--bg);
+      background-size: 48px 48px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+      line-height: 1.7;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 280px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      border-right: 1px solid var(--line);
+      background: rgba(11, 15, 20, 0.92);
+      padding: 28px 22px;
+      overflow: auto;
+    }
+
+    .brand {
+      display: grid;
+      gap: 8px;
+      padding-bottom: 22px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand-mark {
+      width: 44px;
+      height: 44px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      font-weight: 800;
+      letter-spacing: 0;
+      background: #0f1821;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.35;
+    }
+
+    .brand p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .nav {
+      display: grid;
+      gap: 6px;
+      margin-top: 22px;
+    }
+
+    .nav a {
+      display: block;
+      border: 1px solid transparent;
+      padding: 9px 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .nav a:hover {
+      border-color: var(--line);
+      background: var(--panel);
+      color: var(--text);
+    }
+
+    main {
+      min-width: 0;
+    }
+
+    .hero {
+      min-height: 92vh;
+      display: grid;
+      align-content: center;
+      gap: 28px;
+      padding: 72px min(6vw, 72px) 42px;
+      border-bottom: 1px solid var(--line);
+      background:
+        radial-gradient(circle at 70% 20%, rgba(56, 213, 255, 0.16), transparent 34%),
+        linear-gradient(135deg, rgba(18, 24, 33, 0.42), rgba(11, 15, 20, 0.95));
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      width: fit-content;
+      gap: 8px;
+      align-items: center;
+      border: 1px solid var(--line);
+      padding: 6px 10px;
+      color: var(--muted);
+      background: rgba(18, 24, 33, 0.72);
+      font-size: 13px;
+    }
+
+    .pulse {
+      width: 8px;
+      height: 8px;
+      background: var(--green);
+      box-shadow: 0 0 18px var(--green);
+    }
+
+    .hero h2 {
+      max-width: 920px;
+      margin: 0;
+      font-size: clamp(42px, 7vw, 86px);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 850px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+      max-width: 980px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      background: rgba(18, 24, 33, 0.82);
+      padding: 16px;
+      min-height: 118px;
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 30px;
+      line-height: 1;
+      color: var(--cyan);
+    }
+
+    .metric span {
+      display: block;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    section {
+      padding: 56px min(6vw, 72px);
+      border-bottom: 1px solid var(--line);
+      background: rgba(11, 15, 20, 0.76);
+    }
+
+    section:nth-of-type(even) {
+      background: rgba(18, 24, 33, 0.62);
+    }
+
+    .section-head {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 26px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 46px);
+      line-height: 1.15;
+    }
+
+    .section-head p {
+      max-width: 880px;
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 20px;
+    }
+
+    .panel h3 {
+      margin: 0 0 12px;
+      font-size: 19px;
+    }
+
+    .panel p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .status {
+      display: grid;
+      gap: 10px;
+    }
+
+    .status-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.4fr);
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .status-row div {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 12px 14px;
+    }
+
+    .tag {
+      display: inline-flex;
+      width: fit-content;
+      border: 1px solid currentColor;
+      padding: 2px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    .tag.warn {
+      color: var(--amber);
+    }
+
+    .tag.off {
+      color: var(--red);
+    }
+
+    .architecture {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(110px, 1fr));
+      gap: 10px;
+      align-items: center;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .node {
+      min-height: 92px;
+      border: 1px solid var(--line);
+      background: #101923;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 14px;
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .arrow {
+      text-align: center;
+      color: var(--cyan);
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .bars {
+      display: grid;
+      gap: 14px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 90px 1fr 80px;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .track {
+      height: 18px;
+      border: 1px solid var(--line);
+      background: #0b1118;
+      overflow: hidden;
+    }
+
+    .fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan), var(--green));
+    }
+
+    .fill.web {
+      width: 100%;
+    }
+
+    .fill.dns {
+      width: 55%;
+    }
+
+    .fill.icmp {
+      width: 2%;
+      min-width: 8px;
+      background: var(--amber);
+    }
+
+    .timeline {
+      display: grid;
+      gap: 14px;
+      counter-reset: step;
+    }
+
+    .step {
+      position: relative;
+      border-left: 2px solid var(--cyan);
+      padding: 0 0 0 18px;
+    }
+
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      left: -12px;
+      top: 0;
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      background: var(--cyan);
+      color: #00121a;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .step h3 {
+      margin: 0 0 4px;
+      font-size: 18px;
+    }
+
+    .step p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--line);
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--line);
+      padding: 12px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--cyan);
+      background: #0f1720;
+    }
+
+    td {
+      color: var(--muted);
+    }
+
+    code,
+    pre {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    }
+
+    pre {
+      margin: 0;
+      padding: 16px;
+      border: 1px solid var(--line);
+      background: #071018;
+      color: #d7f7ff;
+      overflow: auto;
+    }
+
+    .code-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .print-note {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 980px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        height: auto;
+      }
+
+      .nav {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .hero-grid,
+      .grid-2,
+      .grid-3 {
+        grid-template-columns: 1fr;
+      }
+
+      .status-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media print {
+      body {
+        background: white;
+        color: var(--ink);
+      }
+
+      .shell {
+        display: block;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .hero,
+      section {
+        background: white;
+        color: var(--ink);
+        border-color: #c8d0dc;
+        break-inside: avoid;
+      }
+
+      .panel,
+      .metric,
+      table,
+      pre,
+      .node,
+      .status-row div {
+        background: white;
+        color: var(--ink);
+        border-color: #c8d0dc;
+      }
+
+      td,
+      .panel p,
+      .section-head p,
+      .hero p,
+      .metric span {
+        color: #394657;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">AI</div>
+        <h1>网络流量分类器课程报告</h1>
+        <p>pcap 解析 · KNN 分类 · 实时抓包 · 攻击报警</p>
+      </div>
+      <nav class="nav" aria-label="目录">
+        <a href="#intro">第 1 章 引言</a>
+        <a href="#design">第 2 章 系统设计</a>
+        <a href="#layers">第 3 章 五层分析</a>
+        <a href="#ai">第 4 章 AI 集成</a>
+        <a href="#test">第 5 章 测试验证</a>
+        <a href="#summary">第 6 章 总结展望</a>
+      </nav>
+    </aside>
+
+    <main>
+      <header class="hero">
+        <div class="eyebrow"><span class="pulse"></span>课程设计 · 题目二</div>
+        <h2>AI 驱动的网络流量分类器</h2>
+        <p>系统读取 pcap/pcapng 或实时网卡数据包，解析 IPv4、TCP、UDP、ICMP，按五元组聚合流量，提取统计特征，使用规则分类和标准库 KNN 模型输出流量类别与置信度，并对 SYN Flood、TCP Probe、Port Scan 进行报警。</p>
+        <div class="hero-grid">
+          <div class="metric"><strong>42,749</strong><span>Web 样本解析包数量</span></div>
+          <div class="metric"><strong>342</strong><span>KNN 训练样本总数</span></div>
+          <div class="metric"><strong>3</strong><span>已训练类别：DNS / ICMP / Web</span></div>
+          <div class="metric"><strong>100</strong><span>实时抓包默认包数</span></div>
+        </div>
+      </header>
+
+      <section id="intro">
+        <div class="section-head">
+          <h2>第 1 章 引言</h2>
+          <p>本项目实现一个网络流量分类器原型，覆盖抓包读取、协议解析、五元组聚合、特征提取、机器学习分类、攻击检测与报告验证。</p>
+        </div>
+        <div class="grid-2">
+          <div class="panel">
+            <h3>选题目标</h3>
+            <p>开发一个能够捕获或读取网络数据包的网络嗅探器，从五层协议头部提取关键字段，训练简单分类器并输出当前流量类别及置信度。</p>
+          </div>
+          <div class="panel">
+            <h3>开发环境</h3>
+            <p>Python 3、Wireshark、Linux / Nix 开发环境。系统不依赖第三方 Python 包，KNN 模型和实时抓包入口均使用标准库实现。</p>
+          </div>
+        </div>
+
+        <h3>课程要求完成情况</h3>
+        <div class="status">
+          <div class="status-row"><div>抓包模块：实时抓包或读取 pcap 文件</div><div><span class="tag">完成</span> 支持 pcap/pcapng 读取；实现 Linux 网卡实时抓包入口。</div></div>
+          <div class="status-row"><div>五元组特征提取</div><div><span class="tag">完成</span> 平均包长、间隔方差、协议、端口、TTL、TCP flags 等均已提取。</div></div>
+          <div class="status-row"><div>训练简单分类器</div><div><span class="tag">完成</span> 使用带标签 CSV 训练标准库 KNN，保存为 JSON 并加载预测。</div></div>
+          <div class="status-row"><div>选择网卡，抓 100 个包后输出类别</div><div><span class="tag warn">代码完成</span> 实时抓包需要 root 或 CAP_NET_RAW 权限。</div></div>
+          <div class="status-row"><div>攻击检测与报警</div><div><span class="tag">完成</span> SYN_Flood、TCP_Probe、Port_Scan 输出 ALERT。</div></div>
+          <div class="status-row"><div>实时图形化柱状图</div><div><span class="tag off">未完成</span> 当前报告提供静态柱状展示，程序暂无 GUI。</div></div>
+        </div>
+      </section>
+
+      <section id="design">
+        <div class="section-head">
+          <h2>第 2 章 系统设计</h2>
+          <p>系统采用“输入抓包数据、解析协议字段、聚合网络流、提取特征、分类与报警、输出 CSV”的流水线结构。</p>
+        </div>
+
+        <div class="architecture">
+          <div class="node">Wireshark / 实时网卡</div>
+          <div class="arrow">→</div>
+          <div class="node">RawPacket / pcapng</div>
+          <div class="arrow">→</div>
+          <div class="node">协议解析</div>
+          <div class="arrow">→</div>
+          <div class="node">五元组流</div>
+          <div class="arrow">→</div>
+          <div class="node">特征提取</div>
+          <div class="arrow">→</div>
+          <div class="node">规则 / KNN / ALERT</div>
+        </div>
+
+        <div class="grid-3">
+          <div class="panel">
+            <h3>抓包读取</h3>
+            <p><code>pcap_reader.py</code> 支持 pcap 和常见 pcapng；<code>live_capture.py</code> 支持 Linux 网卡实时抓包。</p>
+          </div>
+          <div class="panel">
+            <h3>协议解析</h3>
+            <p><code>parser.py</code> 解析 Ethernet、VLAN、IPv4、TCP、UDP、ICMP，并生成统一的 PacketRecord。</p>
+          </div>
+          <div class="panel">
+            <h3>分类输出</h3>
+            <p><code>classifier.py</code> 负责规则分类和攻击报警；<code>ml.py</code> 负责 KNN 训练和预测。</p>
+          </div>
+        </div>
+
+        <h3>核心命令</h3>
+        <div class="code-grid">
+          <pre><code>python -m traffic_classifier samples/web.pcapng --csv output/web_features.csv</code></pre>
+          <pre><code>python -m traffic_classifier.train output/dns_features.csv output/icmp_features.csv output/web_features.csv --model models/knn_model.json</code></pre>
+          <pre><code>python -m traffic_classifier.predict samples/web.pcapng --model models/knn_model.json</code></pre>
+          <pre><code>python -m traffic_classifier.predict samples/live_100.pcapng --model models/knn_model.json --limit 10</code></pre>
+          <pre><code>python -m traffic_classifier.live_capture -i eth0 --count 100 --model models/knn_model.json</code></pre>
+        </div>
+      </section>
+
+      <section id="layers">
+        <div class="section-head">
+          <h2>第 3 章 五层体系结构原理分析与验证</h2>
+          <p>HTTP/HTTPS 请求从浏览器产生后，逐层添加头部，最终被网卡捕获为链路层帧；程序再按相反方向解析头部并提取特征。</p>
+        </div>
+
+        <div class="timeline">
+          <div class="step"><h3>应用层</h3><p>浏览器生成 HTTP 请求；HTTPS 场景下请求会经 TLS 加密。</p></div>
+          <div class="step"><h3>传输层</h3><p>TCP 添加源端口、目的端口、序号、确认号、窗口、flags 和校验和。</p></div>
+          <div class="step"><h3>网络层</h3><p>IPv4 添加源 IP、目的 IP、TTL、协议号、总长度等字段。</p></div>
+          <div class="step"><h3>数据链路层</h3><p>Ethernet 添加源 MAC、目的 MAC 和以太网类型，例如 0x0800 表示 IPv4。</p></div>
+          <div class="step"><h3>物理层</h3><p>Wi-Fi 网卡把帧转换为无线信号传输；抓包程序在网卡处捕获数据帧。</p></div>
+        </div>
+
+        <h3>Wireshark 验证建议截图</h3>
+        <table>
+          <thead><tr><th>截图</th><th>过滤条件</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>DNS 流量</td><td><code>dns</code></td><td>验证 UDP/TCP 53 查询与响应。</td></tr>
+            <tr><td>ICMP 流量</td><td><code>icmp</code></td><td>验证 ping 请求和响应。</td></tr>
+            <tr><td>Web 流量</td><td><code>tcp.port == 80 or tcp.port == 443</code></td><td>验证 HTTP/HTTPS 连接。</td></tr>
+            <tr><td>TCP 分层详情</td><td>任选 TCP 包</td><td>展示 Frame、Ethernet II、IPv4、TCP 字段。</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="ai">
+        <div class="section-head">
+          <h2>第 4 章 AI 集成实现</h2>
+          <p>系统同时支持可解释规则分类和 KNN 机器学习分类。KNN 使用 CSV 标签样本训练，保存模型后可对新 pcap 文件预测类别和置信度。</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="panel">
+            <h3>KNN 模型</h3>
+            <p>训练样本 342 条，类别包括 DNS、ICMP、Web。Port_Scan 合成样本用于攻击报警和误报分析，不加入普通 KNN 模型，避免把正常流量误判成端口扫描。</p>
+          </div>
+          <div class="panel">
+            <h3>攻击报警</h3>
+            <p>规则模块检测 SYN_Flood、TCP_Probe、Port_Scan。检测到攻击时终端输出中加入 ALERT 标识。</p>
+          </div>
+        </div>
+
+        <h3>分类规则与模型输出</h3>
+        <pre><code>DNS  -> ML=DNS  confidence=1.00
+ICMP -> ML=ICMP confidence=1.00
+Web  -> ML=Web  confidence=1.00
+
+live_100.pcapng -> Web=15, DNS=4
+
+ALERT Port_Scan confidence=0.80 packets=1 bytes=40</code></pre>
+
+        <h3>误报分析</h3>
+        <p>构造样本 <code>false_positive_port_scan.pcap</code> 模拟正常客户端短时间连接同一服务器多个端口 8001 到 8005。系统会按“同一源目的对访问多个端口”的规则报警为 Port_Scan，说明规则检测容易受业务场景影响，后续可加入时间窗口、连接成功率和白名单降低误报。</p>
+      </section>
+
+      <section id="test">
+        <div class="section-head">
+          <h2>第 5 章 系统测试与验证</h2>
+          <p>真实 Wi-Fi 样本和合成攻击样本均已完成验证。KNN 模型、规则分类和攻击报警均能给出可解释输出。</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="panel">
+            <h3>真实样本解析结果</h3>
+            <div class="bars">
+              <div class="bar-row"><span>Web</span><div class="track"><div class="fill web"></div></div><strong>42,749</strong></div>
+              <div class="bar-row"><span>DNS</span><div class="track"><div class="fill dns"></div></div><strong>526</strong></div>
+              <div class="bar-row"><span>ICMP</span><div class="track"><div class="fill icmp"></div></div><strong>8</strong></div>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>聚合流数量</h3>
+            <table>
+              <thead><tr><th>样本</th><th>流数量</th><th>分类</th></tr></thead>
+              <tbody>
+                <tr><td>dns.pcapng</td><td>245</td><td>DNS</td></tr>
+                <tr><td>icmp.pcapng</td><td>1</td><td>ICMP</td></tr>
+                <tr><td>web.pcapng</td><td>96</td><td>Web</td></tr>
+                <tr><td>live_100.pcapng</td><td>19</td><td>Web=15, DNS=4</td></tr>
+                <tr><td>false_positive_port_scan.pcap</td><td>5</td><td>Port_Scan</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <h3>验证命令摘要</h3>
+        <pre><code>pipeline tests passed
+
+model: models/knn_model.json
+samples: 342
+labels: DNS, ICMP, Web
+k: 3
+
+live_100.pcapng:
+parsed_packets: 105
+flows: 19
+ml labels: Web=15, DNS=4
+
+live capture check:
+interfaces: ['eth0']
+error: [Errno 1] Operation not permitted
+hint: live capture usually needs root or CAP_NET_RAW permission</code></pre>
+      </section>
+
+      <section id="summary">
+        <div class="section-head">
+          <h2>第 6 章 总结与展望</h2>
+          <p>项目已完成网络流量分类器的主要流程：抓包输入、协议解析、五元组聚合、特征提取、规则分类、KNN 训练预测和攻击报警。</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="panel">
+            <h3>已完成</h3>
+            <p>pcap/pcapng 读取、Linux 实时抓包入口、DNS/ICMP/Web 真实流量采集标注、KNN 模型保存加载、Port Scan 误报分析、HTTP 五层封装解释。</p>
+          </div>
+          <div class="panel">
+            <h3>后续优化</h3>
+            <p>加入 scikit-learn 决策树或随机森林、训练集/测试集划分、混淆矩阵、实时图形化柱状图、更大规模校园网样本和误报抑制策略。</p>
+          </div>
+        </div>
+
+        <p class="print-note">该 HTML 为独立文件，可直接用浏览器打开，也可使用浏览器打印功能导出 PDF。</p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

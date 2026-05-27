@@ -1,0 +1,2 @@
+flow_id,src_ip,dst_ip,src_port,dst_port,protocol,packet_count,total_bytes,avg_packet_size,max_packet_size,min_packet_size,duration,avg_interval,interval_variance,avg_ttl,syn_count,ack_count,fin_count,rst_count,psh_count,unique_ports,label,confidence,reason
+172.27.152.109:0 <-> 8.8.8.8:0 ICMP,172.27.152.109,8.8.8.8,0,0,ICMP,8,480,60.0,60,60,3.066205,0.438029,0.218901,120.0,0,0,0,0,0,1,ICMP,0.95,ICMP protocol
