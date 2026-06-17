@@ -1,0 +1,511 @@
+
+
+
+汇编语言与逆向工程
+课程设计报告
+ 
+
+
+
+
+
+
+二〇二六 年 四 月
+
+
+
+《汇编语言与逆向工程课程设计要求》
+
+一、课程目标
+本课程设计旨在通过真实逆向工程任务训练学生以下能力：
+1）静态分析能力（IDA / Ghidra）
+2）动态调试能力（x64dbg）
+3）汇编代码理解与还原能力
+4）软件保护机制分析能力
+5）综合分析与报告撰写能力
+
+二、分组要求
+1）每组2–3人
+2）必须明确分工：
+   - 静态分析负责人（IDA分析）
+   - 动态调试负责人（x64dbg调试）
+   - 报告与总结负责人
+3）需在报告中说明分工情况
+
+三、题目来源（必须）
+所有实验题目必须从 Crackmes.one 平台选择（指定来源）。
+
+下述资源供学习参考：（建议先看3-4个案例，然后逐步推进学习）
+
+Nightmare	https://guyinatuxedo.github.io/	系统化的逆向与利用教程，从入门到高级	
+CTF Wiki	https://ctf-wiki.org/	中文社区维护，涵盖Reverse/PWN/Web等
+Reverse Engineering for Beginners	https://beginners.re/	免费电子书，800+页，多语言版本		
+LiveOverflow YouTube	https://www.youtube.com/c/LiveOverflow	高质量视频，二进制安全系列		
+OALabs YouTube	https://www.youtube.com/c/OALabs	恶意软件分析实战
+
+四、题目选择要求（核心）
+每组必须完成3个不同难度的CrackMe题目：
+
+难度组合要求：
+- 低难度：1–2级（1题）
+- 中等难度：3级（1题）
+- 高难度：≥4级（1题）
+
+五、防抄袭题目组合（必须遵守）
+每组按以下三种组合之一完成：
+
+组合A（算法+反调试）：
+- Easy：简单注册校验（字符串 + strcmp）
+- Medium：Keygen算法（循环 + XOR + 加法）
+- Hard：反调试（IsDebuggerPresent）
+
+组合B（数据处理+混淆）：
+- Easy：逻辑判断（if/else）
+- Medium：字符串混淆（XOR/编码）
+- Hard：控制流混淆（多函数跳转）
+
+组合C（综合实战）：
+- Easy：基础输入校验
+- Medium：多参数校验（栈分析）
+- Hard：综合CrackMe（调试+算法+混淆）
+
+六、实验内容
+每个题目必须完成：
+1）程序功能分析
+2）字符串定位
+3）关键函数分析
+4）汇编代码还原（伪代码）
+5）动态调试验证
+6）破解或还原实现
+
+七、实验流程（标准）
+字符串定位 → 函数分析 → 汇编理解 → 调试验证 → 破解实现
+
+八、工具及下载
+必须使用以下工具：
+- IDA Free
+- Ghidra
+- x64dbg
+- Detect It Easy
+
+九、实验报告要求 （参照给出的报告格式）
+每个题目必须独立撰写：
+1）题目信息（来源+难度）
+2）程序功能分析
+3）静态分析（含截图）
+4）动态调试（断点+寄存器）
+5）核心算法（伪代码）
+6）解决方案
+7）验证结果（≥3组）
+8）难度分析
+
+十、综合分析（必须）
+对三个题目进行对比：
+- 难度差异
+- 技术点差异
+- 分析方法差异
+- 时间成本
+
+十一、提交内容
+1）实验报告（Word/PDF）
+2）分析截图
+3）代码（Keygen/脚本）
+4）演示视频（3–5分钟；可以选择是否提交）
+
+十二、评分标准
+
+总评分：
+- 低难度题：20%
+- 中等难度题：30%
+- 高难度题：30%
+- 综合分析：10%
+- 答辩：10%
+
+单题评分：
+- 静态分析：20
+- 动态调试：20
+- 算法理解：30
+- 正确性：20
+- 语言描述和表达：10
+
+十三、加分与扣分
+
+加分（最多+15）：
+- Keygen实现（+5）
+- 自动化脚本（+5）
+- 反调试分析（+5）
+
+扣分：
+- 抄袭：0分
+- 无调试截图：-20%
+- 无算法分析：-30%
+
+十四、重要规定
+1）禁止使用现成writeup
+2）必须展示完整分析过程
+3）不同小组题目组合不同
+4）鼓励自己实现Keygen
+
+
+
+
+
+
+
+
+
+
+
+
+参照样式：选题一 通讯录管理系统
+
+§1.1题目描述
+
+通讯录 
+设计一个通讯录管理系统，每条记录包括：联系人姓名、性别、电话、住址、Email等。
+系统功能要求：
+（1）显示通讯录所有内容。按联系人姓名首字母排序，并统计共有多少条记录。
+（2）查询通讯录。可按联系人姓名或电话号码查询，将查询结果整条记录输出到屏幕。
+（3）修改通讯录。通过查询功能，找到需要修改的记录，并修改内容。在修改记录前显示是否要删除的提示。
+（4）添加记录。需要判断新添加的记录是否存在，若存在终止该操作。
+（5）删除指定记录。通过查询功能，找到要删除的记录。在删除记录前显示是否要删除的提示。
+（6）退出通讯录管理系统。
+
+§1.2算法设计
+
+一．总体设计
+ （请配以文字说明：正式生成打印时请删掉红色字体部分，以下同，不再赘述）
+	
+图1-1 XXXXXX（请替换）
+
+
+
+二．详细设计和主要流程图（建议该部分每幅图应辅以必要的文字说明，以讲清楚流程和算法为准）
+  （1） 主菜单函数
+    此函数功能为提供键盘式选择菜单以调用不同函数。其流程如图1-2所示。
+请针对该图给出一定的文字说明 以下均同，不再赘述，禁止仅贴图，不给说明文字
+
+
+
+图1-2 主菜单函数流程图XXXXX
+
+(2) 查询（请针对该图给出一定的文字说明 以下均同，不再赘述，禁止仅贴图，不给说明文字）
+
+
+图1-3 XXXXXX
+
+ (3) 删除联系人（请针对该图给出一定的文字说明 以下均同，不再赘述，禁止仅贴图，不给说明文字）
+
+图1-4 XXXXXXX
+
+
+§1.3程序设计及代码分析
+
+源程序如下：
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+struct Person  /*联系人信息*/
+{
+    char name[15];	/*姓名*/
+    char sex;		/*性别*/
+    char tel[15];		/*电话*/
+    char add[15];		/*住址*/
+    char Email[15];	/*邮箱*/
+}per[10]={{"Lily",'f',"13547895212","xinyang","233@qq.com"},
+          {"Betty",'f',"12365411212","zhengzhou","321@qq.com"},
+ {"Jack",'m',"65474851232","hengshui","741@qq.com"},
+ {"Michael",'m',"16542875636","dida","163@qq.com"}};
+
+    void sort_display();
+    void require();
+    void correct();
+    void New();
+    void Delete();
+void leave();
+
+ void main()
+{ void menu();
+  menu();   }
+
+void menu()	/*主菜单函数*/
+{   int num;
+    system("cls");
+	system("color 0B");
+    printf("欢迎使用简易通讯录系统!\n");
+    printf("1.显示联系人列表\n2.查询\n3.编辑\n4.新建\n5.删除\n6.退出系统\n");
+    printf("\n请输入1~6以内数字:");
+    scanf("%d",&num);
+    switch(num)
+{
+	case 1:   sort_display(); break;
+
+	case 2 :  require();break;
+
+	case 3 :  correct();break;
+
+	case 4:   New();break;
+
+	case 5:   Delete();break;
+
+	case 6 :  leave();break;
+
+	default:   {printf("输入错误!");system（“pause”）；menu（）；}
+
+     }
+
+
+
+}
+
+    void sort_display()   /*显示联系人列表*/
+{
+   void menu();
+   int i,j,n;
+   struct Person temp;
+   char back;
+
+   for(i=0; (i<10) && (per[i].sex!='\0'); i++);     /*统计联系人个数（10个以内）*/
+     n=i;
+
+   for(i=0;i<n-1;i++)                                 /*联系人按姓名首字母排序*/
+     for(j=0;j<n-1-i;j++)
+       if( strcmp(per[j].name,per[j+1].name)>0)
+  {  temp=per[j];
+     per[j]=per[j+1];
+     per[j+1]=temp; }
+
+
+   printf("姓名     性别    电话        住址      邮箱\n");  /*显示联系人列表*/
+   for(i=0;i<n;i++)
+     printf("%-9s%-8c%-12s%-10s%-8s\n ",
+        per[i].name,per[i].sex,per[i].tel,per[i].add,per[i].Email);
+
+printf("共有%d条记录 ",n);
+printf("按任意键返回主菜单:\n");
+back=getchar();
+back=getchar();
+menu();
+}
+
+
+  void require()		/*查询联系人信息*/
+  {
+    int num,i,n;
+char Name[10];
+char Tel[11];
+char back;
+for(i=0; i<10 && *(per[i].name)!='\0';i++);     /*统计联系人个数（10个以内）*/
+     n=i;
+    printf("按1.姓名 2.电话号码 查询 请输入:");
+    scanf("%d",&num);
+if(num==1)
+{   printf("请输入姓名:");
+   scanf("%s",Name);
+for(i=0; i<n && strcmp(Name,per[i].name)!=0; i++);
+         {
+if(i<n)     printf(" 姓名:%s 性别:%c 电话号码:%s 住址:%s 邮箱:%s\n",
+                        per[i].name,per[i].sex,per[i].tel,per[i].add,per[i].Email);
+         else   printf("输入错误!"); }  }
+
+if(num==2)
+{  printf("请输入电话号码:");
+   scanf("%s",Tel);
+        for(i=0; i<n && strcmp(Tel,per[i].tel)!=0; i++);
+        {
+if(i<n)     printf(" 姓名:%s 性别:%c 电话号码:%s 住址:%s 邮箱:%s ",
+                        per[i].name,per[i].sex,per[i].tel,per[i].add,per[i].Email);
+
+else   printf("输入错误!"); }  }
+printf("按任意键返回主菜单:\n");
+back=getchar();
+back=getchar();
+menu();
+}
+
+
+   void correct()    /*编辑联系人*/
+{
+   int i,num,n;
+   char Name[10];
+   char Sex;
+   char Tel[11];
+   char Add[10];
+   char em[10];
+   char back;
+   
+  for(i=0; i<10 && *(per[i].name)!='\0';i++);     /*统计联系人个数（10个以内）*/
+     n=i;
+   printf("您想要修改哪一位联系人信息？请输入姓名:");
+   scanf("%s",Name);
+
+    for(i=0; i<n && strcmp(Name,per[i].name)!=0; i++);
+
+    printf("您想要修改该联系人的什么信息? 1.姓名2.性别3.电话号码4.住址5.邮箱 请输入数字:");
+   scanf("%d",&num);
+switch(num)
+{ case 1 :  { printf("请输入新的姓名:");
+            scanf("%s",Name);
+             strcpy(per[i].name,Name);};break;
+  case 2 :  { printf("请输入新的性别:");
+            scanf("%c",&Sex);
+            per[i].sex=Sex;};break;
+  case 3  : { printf("请输入新的电话号码:");
+            scanf("%s",Tel);
+              strcpy(per[i].tel,Tel);};break;
+  case 4  : { printf("请输入新的住址:");
+            scanf("%s",Add);
+            strcpy(per[i].add,Add);};break;
+  case 5 :  { printf("请输入新的邮箱:");
+            scanf("%s",em);
+            strcpy(per[i].Email,em);};break;  }
+
+    printf("该联系人修改后的信息如下:\n姓名:%s 性别:%c 电话号码:%s 住址:%s 邮箱:%s\n",
+         per[i].name,per[i].sex,per[i].tel,per[i].add,per[i].Email);
+    printf("按任意键返回主菜单:");
+    back=getchar();
+    back=getchar();
+    menu();
+
+}
+
+
+   void New()		/*新建联系人*/
+{
+   int i,num,n;
+   char Name[10];
+   char Sex;
+   char Tel[11];
+   char Add[10];
+   char em[10];
+   char back;
+  for(i=0; i<10 && *(per[i].name)!='\0';i++);     /*统计联系人个数（10个以内）*/
+     n=i;
+   printf("请输入新建联系人姓名: ");
+   scanf("%s", Name);
+   for(i=0; i<n && strcmp(Name,per[i].name)!=0; i++);
+if(i<n)     printf("联系人已存在!");
+     else      printf("请再次输入新建联系人姓名，还有性别，电话号码，住址，邮箱: ");
+   scanf("%s %c %s %s %s", per[n].name,&per[n].sex,per[n].tel,per[n].add,per[n].Email);
+printf("新建成功!\n");
+printf("按任意键返回主菜单:");
+back=getchar();
+back=getchar();
+menu();
+}
+
+
+
+void Delete()		/*删除联系人*/
+{
+int n,i;
+char check,back;
+char Name[10];
+for(i=0; i<10 && *(per[i].name)!='\0';i++);  n=i;
+printf("请输入您想删除的联系人的姓名:");
+scanf("%s", Name);
+printf("确定删除?(Y/N)");
+check=getchar();
+check=getchar();
+if(check=='N') menu();
+if(check=='Y')
+for(i=0; i<n && strcmp(Name,per[i].name)!=0; i++);
+
+for(;i<n;i++)
+per[i]=per[i+1];
+
+printf("删除成功!\n");
+back=getchar();
+printf("按任意键返回主菜单:");
+back=getchar();
+menu();
+}
+void leave()	/*退出系统*/
+{ exit(0);}
+
+§1.4实验数据及运行效果截图
+（建议该部分每幅图应辅以必要的文字说明，而不是纯粹的图片展示）
+
+浏览联系人列表
+请针对该图给出一定的文字说明
+	
+编号 图名
+查询联系人
+请针对该图给出一定的文字说明
+
+
+编号 图名
+
+
+编辑联系人
+请针对该图给出一定的文字说明 以下均同，不再赘述，禁止仅贴图，不给说明文字
+
+
+编号 图名
+
+四．新建联系人
+	
+编号 图名
+
+删除联系人
+
+编号 图名
+
+
+
+六．退出系统
+	
+
+编号 图名
+
+§1.5设计中出现的错误及解决方法
+一．在浏览联系人列表时，执行框中出现了无数的“烫”字样，根据经验可以初步断定是非法内存问题。原代码如下：
+ struct Person  /*联系人信息*/
+{
+    char name[15];	/*姓名*/
+    char sex;		/*性别*/
+    char tel[15];		/*电话*/
+    char add[15];		/*住址*/
+    char Email[15];	/*邮箱*/
+}per[10]={{"Lily",'f',"13547895212","xinyang","233@qq.com"},
+          {"Betty",'f',"12365411212","zhengzhou","321@qq.com"},
+ {"Jack",'m',"65474851232","hengshui","741@qq.com"},
+ {"Michael",'m',"16542875636","dida","163@qq.com"}};
+
+ void main()
+{ struct Person per；
+void menu();
+   menu();    }
+
+问题出在主函数里出现多余的不必要的声明struct Person per；
+在程序开头已经初始化过存储联系人的结构体了，这里只需去掉struct Person per；即可。
+
+二．在显示联系人信息时，联系人信息对应犬牙差互，界面目不忍视。原代码如下：
+
+printf("姓名     性别    电话        住址      邮箱\n");  /*显示联系人列表*/
+  	 for(i=0;i<n;i++)
+    	 printf("%s     %c      %s       %s     %s \n ", per[i].name,per[i].sex,per[i].tel,per[i].add,per[i].Email);
+
+稍作修改，控制格式化输出:
+	
+ printf("姓名     性别    电话        住址      邮箱\n");  /*显示联系人列表*/
+      for(i=0;i<n;i++)
+       printf("%-9s%-8c%-12s%-10s%-8s\n ", per[i].name,per[i].sex,per[i].tel,per[i].add,per[i].Email);
+        
+这样界面规整又美观。
+       
+
+三．在调用各个功能函数时，主菜单界面总是再次出现，执行框内输出内容越来越繁杂冗长，影响使用效果。在<stdlib.h>头文件里定义的有执行清屏操作的库函数system(“cls”);于是我在menu()函数里加上这一语句，立竿见影。
+
+
+
+
+
+
+
+
+课程设计总结
+ 
+     不要谈个人的心得体会和感谢，请仅围绕选题，谈本课设的主要内容和工作，采用了何种方法和技术路线，取得了何种效果和收获，遇到了哪些问题，还有哪些不足及展望等。
+
+XXXXXXXXXXXX
