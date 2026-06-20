@@ -10,6 +10,9 @@
 
 ```
 C-Demo/
+├── Algorithm/             # 算法练习与课堂报告
+├── Assembly/              # 汇编语言与逆向工程课程设计
+├── CPE/                   # 计算机网络与通信课程项目
 ├── CourseDesign/          # 课程设计项目
 ├── CyberspaceSecurity/    # 密码学和安全实现
 │   ├── Enigma.cpp        # 恩尼格玛机模拟
@@ -20,10 +23,13 @@ C-Demo/
 │   ├── RSA.cpp           # RSA 加密实现
 │   └── ...
 ├── DataStructures/        # 数据结构实现
+├── InformationTheory/     # 信息论与编码实验
+├── InSecurityMath/        # 信息安全数学
+├── OS/                    # 操作系统实验与课程设计
+├── WTA/                   # 武器目标分配算法实验
 ├── foundation/            # 基础项目
 │   ├── gobang.cpp        # 五子棋游戏
 │   └── dbg.h             # 调试工具
-├── InSecurityMath/        # 信息安全数学
 ├── notebook/              # Jupyter 笔记本
 ├── src/                   # 其他源文件
 └── flake.nix             # Nix flake 配置
@@ -71,16 +77,20 @@ nix develop
 
 ### 构建项目
 
-可以使用 CMake 或直接使用 clang 构建项目：
+本仓库是多个独立学习项目的集合，不保证存在仓库根目录的统一构建入口。优先阅读子目录 README 或 Makefile；没有构建入口的单文件示例可直接用 `clang++` 编译。
 
 ```bash
 # 示例：编译 C++ 文件
 clang++ -std=c++17 -o output source.cpp
 
-# 或使用 CMake 构建大型项目
-cmake -B build
-cmake --build build
+# 示例：运行 LLL 项目测试
+make -C CyberspaceSecurity/LLL_Lattice_Reduction_Research test
+
+# 示例：运行 WTA 演示
+make -C WTA
 ```
+
+本地生成的 `build/`、目标文件、Python 缓存、Jupyter checkpoint、IDE 配置和临时可执行文件不应提交到仓库。课程报告、设计文档和必要的小型输入数据保留在对应项目目录内。
 
 ## 涵盖主题
 
@@ -90,6 +100,9 @@ cmake --build build
 - **游戏开发**：五子棋游戏
 - **信息安全数学**：安全的数学基础
 - **系统编程**：底层 C/C++ 编程概念
+- **操作系统实验**：进程控制、线程、调度、银行家算法、缓存同步模拟
+- **网络与通信**：网络流量分类器、抓包样本分析和课程报告
+- **逆向工程**：汇编/逆向分析、调试截图和实验报告
 
 ## 支持平台
 

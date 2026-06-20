@@ -30,8 +30,22 @@
 *.exe
 *.out
 *.app
+a.out
 
-# .vscode
+# Python / notebook cache
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Local editor and agent state
 .vscode/
+.claude/
+.agents/
+
+# Build directories and local outputs
+build/
+CMakeFiles/
+CMakeCache.txt
+compile_commands.json
 /src/out/
 /foundation/vector/
