@@ -30,14 +30,14 @@
     "solverName": "GreedySolver",
     "remainingThreat": 104.688972,
     "damageValue": 591.989646,
-    "runtimeMs": 0.001816,
+    "runtimeMs": 0.001156,
     "assignment": [5, 9, 8, 4, 1, 7, 3, 0, 2, 6]
   },
   "geneticResult": {
     "solverName": "GeneticSolver",
     "remainingThreat": 102.382577,
     "damageValue": 594.296041,
-    "runtimeMs": 25.917195,
+    "runtimeMs": 13.918747,
     "assignment": [5, 9, 8, 3, 1, 7, 4, 0, 2, 6]
   }
 }
