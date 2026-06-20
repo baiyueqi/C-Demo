@@ -13,6 +13,10 @@ C-Demo/
 ├── CourseDesign/          # 课程设计项目
 ├── CyberspaceSecurity/    # 密码学和安全实现
 │   ├── Enigma.cpp        # 恩尼格玛机模拟
+│   ├── LLL_Lattice_Reduction_Research/
+│   │   ├── docs/         # LLL 设计文档和实验报告
+│   │   ├── src/          # LLL、Babai、mini-BKZ 等 C++17 实现
+│   │   └── tests/        # 小维度正确性测试
 │   ├── RSA.cpp           # RSA 加密实现
 │   └── ...
 ├── DataStructures/        # 数据结构实现
@@ -81,6 +85,7 @@ cmake --build build
 ## 涵盖主题
 
 - **密码学**：RSA 加密、恩尼格玛机模拟
+- **格密码与格算法**：LLL 格基约化、Babai 近似 CVP、mini-BKZ/DeepLLL/PotLLL 实验原型
 - **数据结构**：各种数据结构实现
 - **游戏开发**：五子棋游戏
 - **信息安全数学**：安全的数学基础
