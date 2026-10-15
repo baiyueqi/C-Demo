@@ -1,0 +1,3 @@
+Decrypted /home/nixos/workspace/C-Demo/InformationSecurity/results/cipher_256.pgm -> /home/nixos/workspace/C-Demo/InformationSecurity/results/wrong_key_256.pgm
+Lorenz parameters: a=10 b=2.66667 c=28 r=-1 h=0.001 discard=2000 gap=7
+Initial state: x0=1 y0=1 z0=1 w0=1

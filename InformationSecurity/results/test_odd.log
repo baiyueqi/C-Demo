@@ -1,0 +1,17 @@
+Files:
+  plain    : /home/nixos/workspace/C-Demo/InformationSecurity/results/plain_odd.pgm
+  cipher   : /home/nixos/workspace/C-Demo/InformationSecurity/results/cipher_odd.pgm
+  preview  : /home/nixos/workspace/C-Demo/InformationSecurity/results/preview_odd.pgm
+  recovered: /home/nixos/workspace/C-Demo/InformationSecurity/results/recovered_odd.pgm
+
+Key:
+Lorenz parameters: a=10.000000 b=2.666667 c=28.000000 r=-1.000000 h=0.001000 discard=2000 gap=7
+Initial state: x0=1.000000 y0=1.000000 z0=1.000000 w0=1.000000
+
+Metrics:
+  plain entropy              : 4.169759 bit
+  cipher preview entropy     : 7.995792 bit
+  cipher horizontal corr     : 0.001678
+  cipher vertical corr       : 0.001367
+  decrypted PSNR             : inf dB
+  decrypted MSE              : 0.000000
