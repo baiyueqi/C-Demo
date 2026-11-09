@@ -1,0 +1,3 @@
+Hello from parent process!
+This is the second line written by the parent.
+Parent finishes writing, then notifies child via SIGUSR1.

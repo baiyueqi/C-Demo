@@ -1,0 +1,49 @@
+=== File System Audit Report ===
+Target directory: /home/nixos/workspace/C-Demo/Linux/work_2
+Extension filter: (none)
+
+Statistics:
+  Regular files:            23
+  Directories:               5
+  Symbolic links:            0
+  Hard links:                0
+  Unreadable files:          0
+  Executable files:          3
+  Recent files:             23
+  Total size:           182120 bytes
+
+Largest file:  /home/nixos/workspace/C-Demo/Linux/work_2/fs_auditor (55208 bytes)
+Smallest file: /home/nixos/workspace/C-Demo/Linux/work_2/include/reverse.h (241 bytes)
+
+Files (permission strings):
+  -rw-r--r-- /home/nixos/workspace/C-Demo/Linux/work_2/Makefile
+  -rw-r--r-- /home/nixos/workspace/C-Demo/Linux/work_2/assets/image1.png
+  -rw-r--r-- /home/nixos/workspace/C-Demo/Linux/work_2/assets/image2.png
+  -rw-r--r-- /home/nixos/workspace/C-Demo/Linux/work_2/audit_report.txt
+  -rw-r--r-- /home/nixos/workspace/C-Demo/Linux/work_2/cpp_report.txt
+  -rw-r--r-- /home/nixos/workspace/C-Demo/Linux/work_2/include/fs_auditor.h
+  -rw-r--r-- /home/nixos/workspace/C-Demo/Linux/work_2/include/myls.h
+  -rw-r--r-- /home/nixos/workspace/C-Demo/Linux/work_2/include/report.h
+  -rw-r--r-- /home/nixos/workspace/C-Demo/Linux/work_2/include/reverse.h
+  -rw-r--r-- /home/nixos/workspace/C-Demo/Linux/work_2/include/thread_pool.h
+  -rw-r--r-- /home/nixos/workspace/C-Demo/Linux/work_2/main/main.cpp
+  -rw-r--r-- /home/nixos/workspace/C-Demo/Linux/work_2/main/myls_main.cpp
+  -rw-r--r-- /home/nixos/workspace/C-Demo/Linux/work_2/main/reverse_main.cpp
+  -rw-r--r-- /home/nixos/workspace/C-Demo/Linux/work_2/src/fs_auditor.cpp
+  -rw-r--r-- /home/nixos/workspace/C-Demo/Linux/work_2/src/myls.cpp
+  -rw-r--r-- /home/nixos/workspace/C-Demo/Linux/work_2/src/report.cpp
+  -rw-r--r-- /home/nixos/workspace/C-Demo/Linux/work_2/src/reverse.cpp
+  -rw-r--r-- /home/nixos/workspace/C-Demo/Linux/work_2/src/thread_pool.cpp
+  -rw-r--r-- /home/nixos/workspace/C-Demo/Linux/work_2/实验(2).md
+  -rw-r--r-- /home/nixos/workspace/C-Demo/Linux/work_2/操作文档.md
+  -rwxr-xr-x /home/nixos/workspace/C-Demo/Linux/work_2/fs_auditor
+  -rwxr-xr-x /home/nixos/workspace/C-Demo/Linux/work_2/myls
+  -rwxr-xr-x /home/nixos/workspace/C-Demo/Linux/work_2/reverse
+  drwxr-xr-x /home/nixos/workspace/C-Demo/Linux/work_2
+  drwxr-xr-x /home/nixos/workspace/C-Demo/Linux/work_2/assets
+  drwxr-xr-x /home/nixos/workspace/C-Demo/Linux/work_2/include
+  drwxr-xr-x /home/nixos/workspace/C-Demo/Linux/work_2/main
+  drwxr-xr-x /home/nixos/workspace/C-Demo/Linux/work_2/src
+
+Errors:
+  (none)
